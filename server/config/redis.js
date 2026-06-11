@@ -2,7 +2,8 @@ import { createClient } from "redis";
 import logger from "./logger.js";
 
 export const redisClient = createClient({
-  url: process.env.REDIS_URL,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
 });
 
 redisClient.on("error", (err) => logger.error("Redis Error", err));
