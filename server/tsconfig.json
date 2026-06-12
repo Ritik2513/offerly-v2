@@ -8,6 +8,7 @@
     "outDir": "./dist",
 
     "strict": true,
+    "noImplicitAny": true,
     // "allowJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true
