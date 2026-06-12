@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
+import express, { Express } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -8,7 +8,7 @@ import morganMiddleware from "./config/morgan.js";
 import errorHandler from "./middleware/error.middleware.js";
 import router from "./routes/index.js";
 
-const app = express();
+const app: Express = express();
 app.set("trust proxy", 1);
 
 const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
