@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/affiliates", protect, getAffiliates);
 router.get("/", protect, getAllAffiliates);
-router.get("/export",protect, authorize("admin"), exportAffiliate);
+router.get("/export", protect, authorize("admin"), exportAffiliate);
 router.post("/create", protect, createAffiliate);
 router.patch("/:id/status", protect, toggleAffiliateStatus);
 

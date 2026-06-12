@@ -3,12 +3,12 @@ import logger from "./logger.js";
 
 export const redisClient = createClient({
   host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
+  port: Number(process.env.REDIS_PORT),
 });
 
 redisClient.on("error", (err) => logger.error("Redis Error", err));
 
-export const connectRedis = async () => {
+export const connectRedis = async (): Promise<void> => {
   await redisClient.connect();
   logger.info("Redis connected");
 };

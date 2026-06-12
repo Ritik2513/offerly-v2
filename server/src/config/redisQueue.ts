@@ -7,11 +7,3 @@ const redisQueueConnection = new IORedis({
 });
 
 export default redisQueueConnection;
-
-// import IORedis from "ioredis";
-
-// const redisQueueConnection = new IORedis(process.env.REDIS_URL, {
-//   maxRetriesPerRequest: null, // important for BullMQ queues
-// });
-
-// export default redisQueueConnection;
