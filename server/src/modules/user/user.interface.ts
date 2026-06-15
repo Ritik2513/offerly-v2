@@ -1,11 +1,15 @@
-import { Document } from "mongoose";
+import { HydratedDocument } from "mongoose";
 
-export interface IUser extends Document {
+export type UserRole = "admin" | "affiliate" | "advertiser";
+
+export interface IUser {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "affiliate" | "advertiser";
+  role: UserRole;
   isActive: boolean;
 
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
+
+export type UserDocument = HydratedDocument<IUser>;
