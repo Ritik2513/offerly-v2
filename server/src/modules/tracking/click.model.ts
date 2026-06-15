@@ -1,9 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { IClick } from "./click.interface.js";
 
-const clickSchema = new mongoose.Schema(
+const clickSchema = new Schema<IClick>(
   {
     trackingLink: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "TrackingLink",
       required: true,
       index: true,
@@ -16,13 +17,13 @@ const clickSchema = new mongoose.Schema(
     },
 
     affiliate: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       index: true,
     },
 
     offer: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Offer",
       index: true,
     },
@@ -73,4 +74,4 @@ const clickSchema = new mongoose.Schema(
 
 //compound index for analytics queries
 clickSchema.index({ trackingLink: 1, createdAt: -1 });
-export default mongoose.model("Click", clickSchema);
+export default mongoose.model<IClick>("Click", clickSchema);

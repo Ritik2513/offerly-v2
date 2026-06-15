@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authorize, protect } from "../middleware/auth.middleware.js";
 import authRoutes from "../modules/auth/auth.routes.js";
 import offerRoutes from "../modules/offer/offer.routes.js";
 import trackingRoutes from "../modules/tracking/tracking.routes.js";

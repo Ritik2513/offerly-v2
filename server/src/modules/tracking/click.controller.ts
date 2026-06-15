@@ -1,16 +1,17 @@
 import Click from "./click.model.js";
+import { Request, Response } from "express";
 
-export const getClicks = async (req, res) => {
+export const getClicks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
 
-    const search = req.query.search?.trim() || "";
-    const status = req.query.status || "";
+    const search = (req.query.search as string)?.trim() || "";
+    const status = (req.query.status as string) || "";
 
     const skip = (page - 1) * limit;
 
-    const pipeline = [
+    const pipeline: any[] = [
       {
         $lookup: {
           from: "users",
@@ -25,7 +26,6 @@ export const getClicks = async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-
       {
         $lookup: {
           from: "offers",
@@ -42,9 +42,8 @@ export const getClicks = async (req, res) => {
       },
     ];
 
-    const matchStage = {};
+    const matchStage: Record<string, any> = {};
 
-    // Search
     if (search) {
       matchStage.$or = [
         {
@@ -53,21 +52,18 @@ export const getClicks = async (req, res) => {
             $options: "i",
           },
         },
-
         {
           "affiliate.name": {
             $regex: search,
             $options: "i",
           },
         },
-
         {
           "affiliate.email": {
             $regex: search,
             $options: "i",
           },
         },
-
         {
           "offer.title": {
             $regex: search,
@@ -77,7 +73,6 @@ export const getClicks = async (req, res) => {
       ];
     }
 
-    // Filter Converted/Pending
     if (status === "converted") {
       matchStage.isConverted = true;
     }
@@ -92,7 +87,6 @@ export const getClicks = async (req, res) => {
       });
     }
 
-    // Total Records
     const totalResult = await Click.aggregate([
       ...pipeline,
       {
@@ -102,20 +96,16 @@ export const getClicks = async (req, res) => {
 
     const totalItems = totalResult[0]?.total || 0;
 
-    // Paginated Data
     const clicks = await Click.aggregate([
       ...pipeline,
-
       {
         $sort: {
           createdAt: -1,
         },
       },
-
       {
         $skip: skip,
       },
-
       {
         $limit: limit,
       },
@@ -123,9 +113,7 @@ export const getClicks = async (req, res) => {
 
     res.status(200).json({
       success: true,
-
       data: clicks,
-
       pagination: {
         page,
         totalPages: Math.ceil(totalItems / limit),

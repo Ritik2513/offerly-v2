@@ -1,24 +1,29 @@
 import dotenv from "dotenv";
 dotenv.config();
-import { Worker } from "bullmq";
-import redisConnection from "../config/redisQueue.js";
+
+import { Job, Worker } from "bullmq";
 import mongoose from "mongoose";
 import geoip from "geoip-lite";
 import { createRequire } from "module";
+
 const require = createRequire(import.meta.url);
 const UAParser = require("ua-parser-js");
+
+import redisConnection from "../config/redisQueue.js";
+import { ClickJobPayload } from "../types/queue.types.js";
 
 import Click from "../modules/tracking/click.model.js";
 import { incrementClickStats } from "../utils/analytics.helper.js";
 import logger from "../config/logger.js";
 
-await mongoose.connect(process.env.MONGO_URI);
+await mongoose.connect(process.env.MONGO_URI as string);
 logger.info("Worker MongoDB Connected");
 
 //Worker listens to clickQueue
-const worker = new Worker(
+const worker = new Worker<ClickJobPayload>(
   "clickQueue",
-  async (job) => {
+
+  async (job: Job<ClickJobPayload>) => {
     const {
       clickId,
       trackingLinkId,
@@ -29,39 +34,51 @@ const worker = new Worker(
       referer,
     } = job.data;
 
-    logger.info("Processing click job:", trackingLinkId);
+    logger.info(`Processing click: ${clickId}`);
 
-    // geo location
     const geo = geoip.lookup(ip);
 
     const country = geo?.country || "Unknown";
     const city = geo?.city || "Unknown";
 
-    //device / browser parsing
     const parser = new UAParser(userAgent);
+
     const device = parser.getDevice().type || "desktop";
     const browser = parser.getBrowser().name || "Unknown";
     const os = parser.getOS().name || "Unknown";
 
     const clickDoc = await Click.create({
       clickId,
+
       trackingLink: trackingLinkId,
-      ip,
-      country,
-      city,
-      device,
-      browser,
-      os,
-      referer,
+
       affiliate,
+
       offer,
+
+      ip,
+
+      country,
+
+      city,
+
+      device,
+
+      browser,
+
+      os,
+
+      referer,
     });
 
-    logger.info("Click saved to MongoDB", clickDoc);
+    logger.info("Click saved");
 
     await incrementClickStats(clickDoc);
   },
-  { connection: redisConnection },
+
+  {
+    connection: redisConnection,
+  },
 );
 
 worker.on("completed", (job) => {
