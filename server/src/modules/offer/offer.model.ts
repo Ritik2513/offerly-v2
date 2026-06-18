@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose,{Schema} from "mongoose";
+import { IOffer } from "./offer.interface.js";
 
-const offerSchema = new mongoose.Schema(
+const offerSchema = new Schema<IOffer>(
   {
     title: {
       type: String,
@@ -34,5 +35,5 @@ const offerSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Offer = mongoose.model("Offer", offerSchema);
+const Offer = mongoose.model<IOffer>("Offer", offerSchema);
 export default Offer;
