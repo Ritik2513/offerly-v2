@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { IConversion } from "./conversion.interface.js";
 
-const conversionSchema = new mongoose.Schema(
+const conversionSchema = new Schema<IConversion>(
   {
     click: {
       type: mongoose.Schema.Types.ObjectId,
@@ -40,14 +41,12 @@ const conversionSchema = new mongoose.Schema(
       required: true,
     },
 
-    // advertiser approved conversion?
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "approved",
     },
 
-    // affiliate already paid?
     payoutStatus: {
       type: String,
       enum: ["pending", "paid"],
@@ -58,4 +57,7 @@ const conversionSchema = new mongoose.Schema(
 );
 
 conversionSchema.index({ offer: 1, createdAt: -1 });
-export default mongoose.model("Conversion", conversionSchema);
+
+const Conversion = mongoose.model<IConversion>("Conversion", conversionSchema);
+
+export default Conversion;

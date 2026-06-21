@@ -1,11 +1,13 @@
-import express from "express";
-import { protect, authorize } from "../../middleware/auth.middleware.js";
+import { Router } from "express";
 
 import { getConversions, exportConversions } from "./conversion.controller.js";
 
-const router = express.Router();
+import { protect, authorize } from "../../middleware/auth.middleware.js";
+
+const router = Router();
 
 router.get("/", protect, getConversions);
+
 router.get("/export", protect, authorize("admin"), exportConversions);
 
 export default router;
