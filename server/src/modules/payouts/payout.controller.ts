@@ -1,24 +1,72 @@
+import { Request, Response } from "express";
+import { PipelineStage } from "mongoose";
+
 import Conversion from "../conversions/conversion.model.js";
 import Payout from "./payout.model.js";
 import { exportCSV } from "../../utils/csvExport.js";
 
-export const createPayout = async (req, res) => {
+interface CreatePayoutBody {
+  affiliateId: string;
+}
+
+interface PayoutQuery {
+  page?: string;
+  limit?: string;
+  search?: string;
+  status?: "pending" | "paid";
+}
+
+interface AnalyticsItem {
+  _id: string;
+  count: number;
+  amount: number;
+}
+
+interface ExportPayoutRow {
+  affiliate?: {
+    name?: string;
+    email?: string;
+  };
+
+  amount: number;
+  status: string;
+  createdAt: Date;
+}
+
+/*
+=================================
+CREATE PAYOUT
+=================================
+*/
+
+export const createPayout = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { affiliateId } = req.body;
+    const body = req.body as CreatePayoutBody;
+
+    const { affiliateId } = body;
 
     const conversions = await Conversion.find({
       affiliate: affiliateId,
-      payout: { $gt: 0 },
+
+      payout: {
+        $gt: 0,
+      },
+
       payoutStatus: {
         $ne: "paid",
       },
     });
 
     if (!conversions.length) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "No payable conversions",
       });
+
+      return;
     }
 
     const totalAmount = conversions.reduce((acc, curr) => acc + curr.payout, 0);
@@ -35,28 +83,43 @@ export const createPayout = async (req, res) => {
           $in: conversions.map((c) => c._id),
         },
       },
-      { payoutStatus: "paid" },
+
+      {
+        payoutStatus: "paid",
+      },
     );
 
-    res.status(201).json({ success: true, payout });
+    res.status(201).json({
+      success: true,
+      payout,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to create payout" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to create payout",
+    });
   }
 };
 
-export const getPayout = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+/*
+=================================
+GET PAYOUTS
+=================================
+*/
 
-    const search = req.query.search?.trim() || "";
-    const status = req.query.status || "";
+export const getPayout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const query = req.query as PayoutQuery;
+
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+
+    const search = query.search?.trim() || "";
+    const status = query.status || "";
 
     const skip = (page - 1) * limit;
 
-    const pipeline = [
+    const pipeline: PipelineStage[] = [
       {
         $lookup: {
           from: "users",
@@ -65,19 +128,20 @@ export const getPayout = async (req, res) => {
           as: "affiliate",
         },
       },
+
       {
         $unwind: "$affiliate",
       },
     ];
 
-    const matchStage = {};
+    const matchStage: any = {};
 
-    // Status Filter
+    // status filter
     if (status) {
       matchStage.status = status;
     }
 
-    // Search Filter
+    // search filter
     if (search) {
       matchStage.$or = [
         {
@@ -86,6 +150,7 @@ export const getPayout = async (req, res) => {
             $options: "i",
           },
         },
+
         {
           "affiliate.email": {
             $regex: search,
@@ -101,9 +166,10 @@ export const getPayout = async (req, res) => {
       });
     }
 
-    // Total Records
+    // total count
     const totalResult = await Payout.aggregate([
       ...pipeline,
+
       {
         $count: "total",
       },
@@ -111,23 +177,26 @@ export const getPayout = async (req, res) => {
 
     const totalItems = totalResult[0]?.total || 0;
 
-    // Paginated Data
+    // paginated data
     const payouts = await Payout.aggregate([
       ...pipeline,
+
       {
         $sort: {
           createdAt: -1,
         },
       },
+
       {
         $skip: skip,
       },
+
       {
         $limit: limit,
       },
     ]);
 
-    // Analytics
+    // analytics
     const analyticsResult = await Payout.aggregate([
       ...(Object.keys(matchStage).length > 0
         ? [
@@ -139,9 +208,11 @@ export const getPayout = async (req, res) => {
                 as: "affiliate",
               },
             },
+
             {
               $unwind: "$affiliate",
             },
+
             {
               $match: matchStage,
             },
@@ -151,9 +222,11 @@ export const getPayout = async (req, res) => {
       {
         $group: {
           _id: "$status",
+
           count: {
             $sum: 1,
           },
+
           amount: {
             $sum: "$amount",
           },
@@ -165,7 +238,7 @@ export const getPayout = async (req, res) => {
     let totalPending = 0;
     let totalPayouts = 0;
 
-    analyticsResult.forEach((item) => {
+    analyticsResult.forEach((item: AnalyticsItem) => {
       totalPayouts += item.count;
 
       if (item._id === "paid") {
@@ -177,6 +250,7 @@ export const getPayout = async (req, res) => {
       }
     });
 
+    // unique affiliates
     const uniqueAffiliatesResult = await Payout.aggregate([
       ...(Object.keys(matchStage).length > 0
         ? [
@@ -188,9 +262,11 @@ export const getPayout = async (req, res) => {
                 as: "affiliate",
               },
             },
+
             {
               $unwind: "$affiliate",
             },
+
             {
               $match: matchStage,
             },
@@ -202,6 +278,7 @@ export const getPayout = async (req, res) => {
           _id: "$affiliate",
         },
       },
+
       {
         $count: "count",
       },
@@ -237,24 +314,39 @@ export const getPayout = async (req, res) => {
   }
 };
 
-export const markPayoutPaid = async (req, res) => {
+/*
+=================================
+MARK PAID
+=================================
+*/
+
+export const markPayoutPaid = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as {
+      id: string;
+    };
 
     const payout = await Payout.findById(id);
 
     if (!payout) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Payout not found",
       });
+
+      return;
     }
 
     if (payout.status === "paid") {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Payout already paid",
       });
+
+      return;
     }
 
     payout.status = "paid";
@@ -275,17 +367,30 @@ export const markPayoutPaid = async (req, res) => {
   }
 };
 
-export const exportPayouts = async (req, res) => {
+/*
+=================================
+EXPORT PAYOUTS
+=================================
+*/
+
+export const exportPayouts = async (
+  req: Request,
+  res: Response,
+): Promise<Response | void> => {
   try {
-    const payouts = await Payout.find()
+    const payouts = (await Payout.find()
       .populate("affiliate", "name email")
-      .lean();
+      .lean()) as unknown as ExportPayoutRow[];
 
     const data = payouts.map((item) => ({
       affiliate: item.affiliate?.name,
+
       email: item.affiliate?.email,
+
       amount: item.amount,
+
       status: item.status,
+
       date: item.createdAt.toLocaleDateString("en-IN"),
     }));
 
@@ -297,6 +402,7 @@ export const exportPayouts = async (req, res) => {
     );
   } catch (error) {
     return res.status(500).json({
+      success: false,
       message: "Failed to export payouts",
     });
   }

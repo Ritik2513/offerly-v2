@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { IPayout } from "./payout.interface.js";
 
-const payoutSchema = new mongoose.Schema(
+const payoutSchema = new Schema<IPayout>(
   {
     affiliate: {
       type: mongoose.Schema.Types.ObjectId,
@@ -33,5 +34,9 @@ const payoutSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Payout = mongoose.model("Payout", payoutSchema);
+const Payout = mongoose.model<IPayout>(
+  "Payout",
+  payoutSchema,
+);
+
 export default Payout;
