@@ -21,3 +21,4 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+/src/generated/prisma
