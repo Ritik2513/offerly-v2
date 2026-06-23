@@ -39,3 +39,6 @@ Phase 5 → Docker
 Phase 6 → Testing
 Phase 7 → Payment Gateway
 Phase 8 → AWS Deployment
+
+
+# no work today 23-06-26
