@@ -7,14 +7,15 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "worker": "tsx watch src/workers/click.worker.ts"
+    "worker": "tsx watch src/workers/click.worker.ts",
+    "seed":"tsx watch src/scripts/seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^7.8.0",
+    "@prisma/client": "^6.10.1",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.76.8",
     "cookie-parser": "^1.4.7",
@@ -30,6 +31,7 @@
     "mongoose": "^9.6.2",
     "morgan": "^1.10.1",
     "nanoid": "^5.1.11",
+    "prisma": "^6.10.1",
     "qs": "^6.15.2",
     "redis": "^5.12.1",
     "ua-parser-js": "^2.0.9",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -47,7 +50,6 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^25.9.3",
     "nodemon": "^3.1.14",
-    "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
