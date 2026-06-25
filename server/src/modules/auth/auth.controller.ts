@@ -1,6 +1,6 @@
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import { registerUser, loginUser } from "./auth.service.js";
+import { registerUserPrisma, loginUserPrisma } from "./auth.prisma.service.js";
 import { generateToken } from "../../utils/jwt.js";
 import { Request, Response } from "express";
 
@@ -17,23 +17,23 @@ const cookieOptions = {
 // register controller
 export const register = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const user = await registerUser(req.body);
+    const user = await registerUserPrisma(req.body);
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user.id.toString());
 
     res
       .status(201)
       .cookie("token", token, cookieOptions)
-      .json(new ApiResponse(201, { user }, "User resgistered"));
+      .json(new ApiResponse(201, { user }, "User registered"));
   },
 );
 
 // Login Controller
 export const login = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const user = await loginUser(req.body);
+    const user = await loginUserPrisma(req.body);
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user.id.toString());
 
     res
       .status(200)
