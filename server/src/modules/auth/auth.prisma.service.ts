@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcryptjs";
+import ApiError from "../../utils/ApiError.js";
 
 interface RegisterInput {
   name: string;
@@ -22,7 +23,7 @@ export const registerUserPrisma = async ({
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new ApiError(400, "User already exists");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,13 +44,17 @@ export const loginUserPrisma = async ({ email, password }: LoginInput) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new ApiError(404, "User not found");
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, "Account disabled");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) {
-    throw new Error("Invalid Credentials");
+    throw new ApiError(401, "Invalid Credentials");
   }
   return user;
 };
