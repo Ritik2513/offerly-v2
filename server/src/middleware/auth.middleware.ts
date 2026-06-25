@@ -3,15 +3,15 @@ import { Request, Response, NextFunction } from "express";
 
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
-import User from "../modules/user/user.model.js";
 import { JwtPayload } from "../types/express.types.js";
+import prisma from "../config/prisma.js";
 
 export const protect = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const token = req.cookies?.token;
 
     if (!token) {
-      throw new ApiError(401, "Not authorized, no token");
+      throw new ApiError(401, "Not authorized, No token");
     }
 
     const decoded = jwt.verify(
@@ -19,19 +19,17 @@ export const protect = asyncHandler(
       process.env.JWT_SECRET as string,
     ) as JwtPayload;
 
-    const user = await User.findById(decoded.id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.id,
+      },
+    });
+
+    req.user = user;
 
     if (!user) {
       throw new ApiError(401, "User not found");
     }
-
-    if (!user.isActive) {
-      res.clearCookie("token");
-      throw new ApiError(401, "Account disabled");
-    }
-
-    req.user = user;
-
     next();
   },
 );
