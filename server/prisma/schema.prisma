@@ -15,6 +15,8 @@ model User {
   role     String  @default("affiliate")
   isActive Boolean @default(true)
 
+  trackingLinks TrackingLink[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -28,6 +30,24 @@ model Offer {
   payout         Float
   status         String  @default("active")
 
+  trackingLinks TrackingLink[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TrackingLink {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  affiliateId String
+  affiliate   User   @relation(fields: [affiliateId], references: [id])
+
+  offerId String
+  offer   Offer  @relation(fields: [offerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
 }

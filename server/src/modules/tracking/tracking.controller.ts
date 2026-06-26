@@ -1,33 +1,38 @@
 import { Request, Response } from "express";
+import asyncHandler from "../../utils/asyncHandler.js";
+
 import { nanoid } from "nanoid";
 
-import TrackingLink from "./trackingLink.model.js";
-import asyncHandler from "../../utils/asyncHandler.js";
-import { clickQueue } from "../../queues/click.queue.js";
 import logger from "../../config/logger.js";
+
+import { clickQueue } from "../../queues/click.queue.js";
+
 import { ClickJobPayload } from "../../types/queue.types.js";
 
-// Generate tracking link
+import prisma from "../../config/prisma.js";
+
+import { generateTrackingLinkPrisma } from "./tracking.prisma.service.js";
+
+// Generate Tracking Link
 export const generateTrackingLink = asyncHandler(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const { offerId, affiliateId } = req.body;
 
-    const slug = nanoid(8);
-
-    const link = await TrackingLink.create({
-      slug,
-      affiliate: req.user?.role === "admin" ? affiliateId : req.user?._id,
-      offer: offerId,
+    const link = await generateTrackingLinkPrisma({
+      offerId,
+      affiliateId,
+      userId: req.user!.id,
+      role: req.user!.role,
     });
 
     res.status(201).json({
-      message: "Tracking link created",
-      trackingUrl: `${process.env.SERVER_URL}/api/tracking/t/${slug}`,
+      success: true,
+      trackingUrl: `${process.env.SERVER_URL}/api/tracking/t/${link.slug}`,
     });
   },
 );
 
-// Track click
+// Track Click
 export const trackClick = async (
   req: Request,
   res: Response,
@@ -35,7 +40,15 @@ export const trackClick = async (
   try {
     const { slug } = req.params;
 
-    const link = await TrackingLink.findOne({ slug }).populate("offer");
+    const link = await prisma.trackingLink.findUnique({
+      where: {
+        slug,
+      },
+
+      include: {
+        offer: true,
+      },
+    });
 
     if (!link) {
       res.status(404).send("Invalid tracking link");
@@ -44,22 +57,27 @@ export const trackClick = async (
 
     const clickId = nanoid(12);
 
-    const populatedOffer = link.offer as any;
-
     const clickData: ClickJobPayload = {
       clickId,
-      trackingLinkId: link._id.toString(),
-      affiliate: link.affiliate.toString(),
-      offer: populatedOffer._id.toString(),
+
+      trackingLinkId: link.id,
+
+      affiliate: link.affiliateId,
+
+      offer: link.offerId,
+
       ip: req.ip || "",
+
       userAgent: req.headers["user-agent"],
+
       referer: req.headers.referer || "direct",
+
       timestamp: Date.now(),
     };
 
     await clickQueue.add("trackClick", clickData);
 
-    const redirectUrl = new URL(populatedOffer.landingPageUrl);
+    const redirectUrl = new URL(link.offer.landingPageUrl);
 
     redirectUrl.searchParams.set("clickId", clickId);
 
