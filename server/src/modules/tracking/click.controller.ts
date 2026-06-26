@@ -1,131 +1,33 @@
-import Click from "./click.model.js";
 import { Request, Response } from "express";
+import asyncHandler from "../../utils/asyncHandler.js";
+import ApiResponse from "../../utils/ApiResponse.js";
 
-export const getClicks = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+import { getClicksPrisma } from "./click.prisma.service.js";
 
-    const search = (req.query.search as string)?.trim() || "";
-    const status = (req.query.status as string) || "";
+interface ClickQuery {
+  page?: string;
+  limit?: string;
+  search?: string;
+  status?: string;
+}
 
-    const skip = (page - 1) * limit;
+export const getClicks = asyncHandler(
+  async (
+    req: Request<{}, {}, {}, ClickQuery>,
+    res: Response,
+  ): Promise<void> => {
+    const result = await getClicksPrisma({
+      page: Number(req.query.page) || 1,
 
-    const pipeline: any[] = [
-      {
-        $lookup: {
-          from: "users",
-          localField: "affiliate",
-          foreignField: "_id",
-          as: "affiliate",
-        },
-      },
-      {
-        $unwind: {
-          path: "$affiliate",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "offers",
-          localField: "offer",
-          foreignField: "_id",
-          as: "offer",
-        },
-      },
-      {
-        $unwind: {
-          path: "$offer",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-    ];
+      limit: Number(req.query.limit) || 10,
 
-    const matchStage: Record<string, any> = {};
+      search: req.query.search,
 
-    if (search) {
-      matchStage.$or = [
-        {
-          clickId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          "affiliate.name": {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          "affiliate.email": {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          "offer.title": {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
-
-    if (status === "converted") {
-      matchStage.isConverted = true;
-    }
-
-    if (status === "pending") {
-      matchStage.isConverted = false;
-    }
-
-    if (Object.keys(matchStage).length > 0) {
-      pipeline.push({
-        $match: matchStage,
-      });
-    }
-
-    const totalResult = await Click.aggregate([
-      ...pipeline,
-      {
-        $count: "total",
-      },
-    ]);
-
-    const totalItems = totalResult[0]?.total || 0;
-
-    const clicks = await Click.aggregate([
-      ...pipeline,
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-      {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
-      },
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: clicks,
-      pagination: {
-        page,
-        totalPages: Math.ceil(totalItems / limit),
-        totalItems,
-      },
+      status: req.query.status,
     });
-  } catch (error) {
-    console.error(error);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch clicks",
-    });
-  }
-};
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, "Clicks fetched successfully"));
+  },
+);

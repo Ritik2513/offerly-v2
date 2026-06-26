@@ -16,6 +16,7 @@ model User {
   isActive Boolean @default(true)
 
   trackingLinks TrackingLink[]
+  clicks        Click[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,6 +32,7 @@ model Offer {
   status         String  @default("active")
 
   trackingLinks TrackingLink[]
+  clicks        Click[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,8 +48,42 @@ model TrackingLink {
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
 
+  clicks Click[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([slug])
+}
+
+model Click {
+  id             String       @id @default(cuid())
+  trackingLinkId String
+  trackingLink   TrackingLink @relation(fields: [trackingLinkId], references: [id])
+
+  clickId String @unique
+
+  affiliateId String
+  affiliate   User   @relation(fields: [affiliateId], references: [id])
+
+  offerId String
+  offer   Offer  @relation(fields: [offerId], references: [id])
+
+  ip      String?
+  country String?
+  city    String?
+
+  device  String  @default("desktop")
+  browser String?
+  os      String?
+
+  referer String?
+
+  isConverted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trackingLinkId, createdAt])
+  @@index([clickId])
 }

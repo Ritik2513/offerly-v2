@@ -71,8 +71,8 @@
 
 ### Database Models
 
-* [ ] TrackingLink model → Prisma
-* [ ] Click model → Prisma
+* [x] TrackingLink model → Prisma
+* [x] Click model → Prisma
 * [ ] Conversion model → Prisma
 * [ ] Payout model → Prisma
 * [ ] Analytics module → Prisma

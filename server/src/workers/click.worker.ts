@@ -1,8 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import { Job, Worker } from "bullmq";
-import mongoose from "mongoose";
 import geoip from "geoip-lite";
 import { createRequire } from "module";
 
@@ -12,12 +8,10 @@ const UAParser = require("ua-parser-js");
 import redisConnection from "../config/redisQueue.js";
 import { ClickJobPayload } from "../types/queue.types.js";
 
-import Click from "../modules/tracking/click.model.js";
 import { incrementClickStats } from "../utils/analytics.helper.js";
 import logger from "../config/logger.js";
 
-await mongoose.connect(process.env.MONGO_URI as string);
-logger.info("Worker MongoDB Connected");
+import { createClickPrisma } from "../modules/tracking/click.prisma.service.js";
 
 //Worker listens to clickQueue
 const worker = new Worker<ClickJobPayload>(
@@ -47,33 +41,27 @@ const worker = new Worker<ClickJobPayload>(
     const browser = parser.getBrowser().name || "Unknown";
     const os = parser.getOS().name || "Unknown";
 
-    const clickDoc = await Click.create({
+    const clickDoc = await createClickPrisma({
       clickId,
-
-      trackingLink: trackingLinkId,
-
-      affiliate,
-
-      offer,
-
+      trackingLinkId,
+      affiliateId: affiliate,
+      offerId: offer,
       ip,
-
       country,
-
       city,
-
       device,
-
       browser,
-
       os,
-
       referer,
     });
 
     logger.info("Click saved");
 
-    await incrementClickStats(clickDoc);
+    await incrementClickStats({
+      offerId: clickDoc.offerId,
+      affiliateId: clickDoc.affiliateId,
+      country: clickDoc.country,
+    });
   },
 
   {
