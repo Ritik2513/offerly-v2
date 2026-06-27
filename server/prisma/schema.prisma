@@ -17,10 +17,11 @@ model User {
 
   trackingLinks TrackingLink[]
   clicks        Click[]
-  conversions Conversion[]
+  conversions   Conversion[]
+  payouts   Payout[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Offer {
@@ -34,10 +35,10 @@ model Offer {
 
   trackingLinks TrackingLink[]
   clicks        Click[]
-  conversions Conversion[]
+  conversions   Conversion[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TrackingLink {
@@ -50,11 +51,11 @@ model TrackingLink {
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
 
-  clicks Click[]
+  clicks      Click[]
   conversions Conversion[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
 }
@@ -84,8 +85,8 @@ model Click {
 
   isConverted Boolean @default(false)
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   conversions Conversion?
 
@@ -106,6 +107,8 @@ model Conversion {
   status       String @default("approved")
   payoutStatus String @default("pending")
 
+  payoutId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -114,5 +117,24 @@ model Conversion {
   offer        Offer        @relation(fields: [offerId], references: [id])
   affiliate    User         @relation(fields: [affiliateId], references: [id])
 
+  payoutRecord Payout? @relation(fields: [payoutId], references: [id])
+
   @@index([offerId, createdAt])
+}
+
+model Payout {
+  id String @id @default(cuid())
+
+  affiliateId String
+  amount      Float
+
+  status String    @default("pending")
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate User @relation(fields: [affiliateId], references: [id])
+
+  conversions Conversion[]
 }
