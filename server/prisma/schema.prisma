@@ -17,9 +17,10 @@ model User {
 
   trackingLinks TrackingLink[]
   clicks        Click[]
+  conversions Conversion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Offer {
@@ -33,9 +34,10 @@ model Offer {
 
   trackingLinks TrackingLink[]
   clicks        Click[]
+  conversions Conversion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model TrackingLink {
@@ -49,9 +51,10 @@ model TrackingLink {
   offer   Offer  @relation(fields: [offerId], references: [id])
 
   clicks Click[]
+  conversions Conversion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@index([slug])
 }
@@ -81,9 +84,35 @@ model Click {
 
   isConverted Boolean @default(false)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  conversions Conversion?
 
   @@index([trackingLinkId, createdAt])
   @@index([clickId])
+}
+
+model Conversion {
+  id             String @id @default(cuid())
+  clickId        String @unique
+  trackingLinkId String
+  offerId        String
+  affiliateId    String
+
+  revenue Float
+  payout  Float
+
+  status       String @default("approved")
+  payoutStatus String @default("pending")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  click        Click        @relation(fields: [clickId], references: [id])
+  trackingLink TrackingLink @relation(fields: [trackingLinkId], references: [id])
+  offer        Offer        @relation(fields: [offerId], references: [id])
+  affiliate    User         @relation(fields: [affiliateId], references: [id])
+
+  @@index([offerId, createdAt])
 }
