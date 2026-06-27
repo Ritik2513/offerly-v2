@@ -1,57 +1,42 @@
-import Click from "./click.model.js";
-import Conversion from "../conversions/conversion.model.js";
-import TrackingLink from "./trackingLink.model.js";
-import Offer from "../offer/offer.model.js";
-import Payout from "../payouts/payout.model.js";
+import { Request, Response } from "express";
 import logger from "../../config/logger.js";
 
-export const postbackConversion = async (req, res) => {
+import { processPostbackPrisma } from "./postback.prisma.service.js";
+
+interface PostbackQuery {
+  clickId?: string;
+  amount?: string;
+}
+
+export const postbackConversion = async (
+  req: Request<{}, {}, {}, PostbackQuery>,
+  res: Response,
+): Promise<void> => {
   try {
     const { clickId, amount } = req.query;
 
-    if (!clickId) return res.status(400).json({ message: "Missing clickId" });
+    if (!clickId) {
+      res.status(400).json({
+        message: "Missing clickId",
+      });
+      return;
+    }
 
-    //find click
-    const click = await Click.findOne({ clickId }).populate("trackingLink");
-
-    if (!click) return res.status(404).json({ message: "Click not found" });
-
-    if (click.isConverted)
-      return res.status(200).json({ message: "Already converted" });
-
-    //load related data
-    const trackingLink = await TrackingLink.findById(
-      click.trackingLink,
-    ).populate("offer affiliate");
-
-    const offer = await Offer.findById(trackingLink.offer);
-
-    const revenue = Number(amount) || offer.payout;
-    const affiliatePayout = offer.payout;
-
-    const conversion = await Conversion.create({
-      click: click._id,
-      trackingLink: trackingLink._id,
-      offer: offer._id,
-      affiliate: trackingLink.affiliate,
-      revenue,
-      payout: affiliatePayout,
-    });
-
-    await Payout.create({
-      affiliate: trackingLink.affiliate,
-      conversions: conversion._id,
-      amount: affiliatePayout,
-      status: "pending",
-    });
-
-    // mark click converted
-    click.isConverted = true;
-    await click.save();
+    await processPostbackPrisma(clickId, amount ? Number(amount) : undefined);
 
     res.send("OK");
-  } catch (error) {
+  } catch (error: any) {
     logger.error(error);
-    res.status(500).send("Error");
+
+    if (error.message === "Already converted") {
+      res.status(200).json({
+        message: "Already converted",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      message: error.message || "Error",
+    });
   }
 };

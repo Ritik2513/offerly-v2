@@ -1,14 +1,13 @@
 {
   "name": "server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "worker": "tsx watch src/workers/click.worker.ts",
-    "seed":"tsx watch src/scripts/seed.ts"
+    "worker": "tsx watch src/workers/click.worker.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +27,6 @@
     "ioredis": "^5.10.1",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.6.2",
     "morgan": "^1.10.1",
     "nanoid": "^5.1.11",
     "prisma": "^6.10.1",

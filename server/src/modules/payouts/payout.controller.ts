@@ -16,9 +16,6 @@ interface PayoutQuery {
   status?: string;
 }
 
-interface PayoutParams {
-  id: string;
-}
 
 /*
 =================================
@@ -81,11 +78,13 @@ MARK PAYOUT PAID
 =================================
 */
 export const markPayoutPaid = async (
-  req: Request<PayoutParams>,
+  req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    await markPayoutPaidPrisma(req.params.id);
+    const { id } = req.params as { id: string };
+
+    await markPayoutPaidPrisma(id);
 
     res.status(200).json({
       success: true,
