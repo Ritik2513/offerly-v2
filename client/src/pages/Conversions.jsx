@@ -38,9 +38,9 @@ const Conversions = () => {
           status,
         },
       });
-      setConversions(data.data || []);
-      setAnalytics(data.analytics || {});
-      setPagination(data.pagination);
+      setConversions(data.data?.conversions || []);
+      setAnalytics(data.data?.analytics || {});
+      setPagination(data.data?.pagination);
     } catch (error) {
       toast.error("Failed to fetch conversions");
     } finally {

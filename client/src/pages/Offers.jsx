@@ -45,8 +45,8 @@ const Offers = () => {
           status,
         },
       });
-      setOffers(data.data || []);
-      setPagination(data.pagination);
+      setOffers(data.data?.offers || []);
+      setPagination(data.data?.pagination);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load offers");
     } finally {

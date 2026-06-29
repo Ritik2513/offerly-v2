@@ -54,7 +54,7 @@ const ClickTable = ({ clicks, loading }) => {
           <tbody>
             {clicks.map((click) => (
               <tr
-                key={click._id}
+                key={click.id}
                 className="
                   border-b border-gray-100
                   hover:bg-gray-50
@@ -132,7 +132,7 @@ const ClickTable = ({ clicks, loading }) => {
       <div className="lg:hidden divide-y divide-gray-100">
         {clicks.map((click) => (
           <div
-            key={click._id}
+            key={click.id}
             className="
         p-4
         hover:bg-gray-50

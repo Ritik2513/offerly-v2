@@ -30,8 +30,8 @@ const Clicks = () => {
           status,
         },
       });
-      setClicks(data.data || []);
-      setPagination(data.pagination);
+      setClicks(data.data?.clicks || []);
+      setPagination(data.data?.pagination);
     } catch (error) {
       toast.error("Failed to fetch clicks");
     } finally {

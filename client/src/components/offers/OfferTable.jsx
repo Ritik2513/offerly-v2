@@ -2,6 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import OfferStatusBadge from "./OfferStatusBadge";
 import TableLoader from "../table/TableLoader";
 import TableEmptyState from "../table/TableEmptyState";
+import { useEffect } from "react";
 
 const OfferTable = ({ offers, loading, onEdit, onDelete }) => {
   if (loading) {
@@ -61,7 +62,7 @@ const OfferTable = ({ offers, loading, onEdit, onDelete }) => {
             <tbody>
               {offers?.filter(Boolean).map((offer) => (
                 <tr
-                  key={offer._id}
+                  key={offer.id}
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
                   <td className="px-6 py-5">
@@ -125,7 +126,7 @@ const OfferTable = ({ offers, loading, onEdit, onDelete }) => {
         {/* Mobile Cards */}
         <div className="lg:hidden divide-y divide-gray-100">
           {offers?.filter(Boolean).map((offer) => (
-            <div key={offer._id} className="p-5 hover:bg-gray-50 transition">
+            <div key={offer.id} className="p-5 hover:bg-gray-50 transition">
               {/* Top */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">

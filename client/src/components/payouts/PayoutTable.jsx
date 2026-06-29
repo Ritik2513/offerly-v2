@@ -75,7 +75,7 @@ const PayoutTable = ({ payouts, loading, onMarkPaid }) => {
           <tbody>
             {payouts.map((item) => (
               <tr
-                key={item._id}
+                key={item.id}
                 className="
                   border-b border-gray-100
                   hover:bg-gray-50/80
@@ -149,7 +149,7 @@ const PayoutTable = ({ payouts, loading, onMarkPaid }) => {
                 {/* Actions */}
                 <td className="px-6 py-5">
                   <button
-                    onClick={() => onMarkPaid(item._id)}
+                    onClick={() => onMarkPaid(item.id)}
                     disabled={item.status === "paid"}
                     className={`
       px-4 py-2 rounded-xl
@@ -176,7 +176,7 @@ const PayoutTable = ({ payouts, loading, onMarkPaid }) => {
       <div className="lg:hidden p-4 space-y-4">
         {payouts.map((item) => (
           <div
-            key={item._id}
+            key={item.id}
             className="
               border border-gray-200
               rounded-3xl
@@ -259,7 +259,7 @@ const PayoutTable = ({ payouts, loading, onMarkPaid }) => {
             </div>
 
             <button
-              onClick={() => onMarkPaid(item._id)}
+              onClick={() => onMarkPaid(item.id)}
               disabled={item.status === "paid"}
               className={`
     mt-4 w-full py-3 rounded-xl
