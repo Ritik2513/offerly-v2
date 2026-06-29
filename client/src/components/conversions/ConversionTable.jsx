@@ -60,7 +60,7 @@ const ConversionTable = ({ conversions, loading }) => {
           <tbody>
             {conversions.map((conversion) => (
               <tr
-                key={conversion._id}
+                key={conversion.id}
                 className="
                   border-b border-gray-100
                   hover:bg-gray-50
@@ -137,11 +137,10 @@ const ConversionTable = ({ conversions, loading }) => {
       </div>
 
       {/* MOBILE CARDS */}
-      {/* MOBILE CARDS */}
       <div className="lg:hidden divide-y divide-gray-100">
         {conversions.map((conversion) => (
           <div
-            key={conversion._id}
+            key={conversion.id}
             className="
         p-4 sm:p-5
         hover:bg-gray-50

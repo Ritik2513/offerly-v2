@@ -43,7 +43,7 @@ const AffiliateTable = ({ affiliates, loading, onToggleStatus }) => {
           <tbody>
             {affiliates.map((affiliate) => (
               <tr
-                key={affiliate._id}
+                key={affiliate.id}
                 className="border-b border-gray-100 hover:bg-gray-50 transition"
               >
                 {/* NAME */}
@@ -138,7 +138,7 @@ const AffiliateTable = ({ affiliates, loading, onToggleStatus }) => {
 
           <tbody>
             {affiliates.map((affiliate) => (
-              <tr key={affiliate._id} className="border-b border-gray-100">
+              <tr key={affiliate.id} className="border-b border-gray-100">
                 <td className="px-5 py-5">
                   <div>
                     <p className="font-semibold text-gray-900">
@@ -194,7 +194,7 @@ const AffiliateTable = ({ affiliates, loading, onToggleStatus }) => {
       <div className="md:hidden p-4 space-y-4 bg-gray-50/40">
         {affiliates.map((affiliate) => (
           <div
-            key={affiliate._id}
+            key={affiliate.id}
             className="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm"
           >
             {/* TOP */}

@@ -16,7 +16,6 @@ interface PayoutQuery {
   status?: string;
 }
 
-
 /*
 =================================
 CREATE PAYOUT
@@ -62,6 +61,7 @@ export const getPayout = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       success: true,
       data: result.payouts,
+      analytics: result.analytics,
       pagination: result.pagination,
     });
   } catch (error: any) {

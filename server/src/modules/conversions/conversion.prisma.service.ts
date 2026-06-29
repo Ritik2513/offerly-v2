@@ -71,8 +71,53 @@ export const getConversionsPrisma = async ({
     },
   });
 
+  //Analytics
+  //grouped counts
+  const groupedStatus = await prisma.conversion.groupBy({
+    by: ["status"],
+    _count: {
+      status: true,
+    },
+  });
+
+  //approved revenue
+  const approvedRevenue = await prisma.conversion.aggregate({
+    where: {
+      status: "approved",
+    },
+    _sum: {
+      revenue: true,
+    },
+  });
+
+  let approved = 0;
+  let pending = 0;
+  let rejected = 0;
+
+  groupedStatus.forEach((item) => {
+    if (item.status === "approved") {
+      approved = item._count.status;
+    }
+
+    if (item.status === "pending") {
+      pending = item._count.status;
+    }
+
+    if (item.status === "rejected") {
+      rejected = item._count.status;
+    }
+  });
+
+  const analytics = {
+    approved,
+    pending,
+    rejected,
+    totalRevenue: approvedRevenue._sum.revenue || 0,
+  };
+
   return {
     conversions,
+    analytics,
     pagination: {
       page,
       totalItems,

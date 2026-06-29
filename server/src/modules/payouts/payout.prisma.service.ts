@@ -105,8 +105,59 @@ export const getPayoutPrisma = async ({
     },
   });
 
+  // Analytics
+  //grouped by status
+  const groupedStatus = await prisma.payout.groupBy({
+    by: ["status"],
+
+    _count: {
+      status: true,
+    },
+
+    _sum: {
+      amount: true,
+    },
+
+    where,
+  });
+
+  let totalPaid = 0;
+  let totalPending = 0;
+  let totalPayouts = 0;
+
+  groupedStatus.forEach((item) => {
+    totalPayouts += item._count.status;
+
+    if (item.status === "paid") {
+      totalPaid = item._sum.amount || 0;
+    }
+
+    if (item.status === "pending") {
+      totalPending = item._sum.amount || 0;
+    }
+  });
+
+  // UNIQUE AFFILIATES
+  const uniqueAffiliateData = await prisma.payout.findMany({
+    where,
+    select: {
+      affiliateId: true,
+    },
+    distinct: ["affiliateId"],
+  });
+
+  const uniqueAffiliates = uniqueAffiliateData.length;
+
+  const analytics = {
+    totalPaid,
+    totalPending,
+    totalPayouts,
+    uniqueAffiliates,
+  };
+
   return {
     payouts,
+    analytics,
     pagination: {
       page,
       totalItems,

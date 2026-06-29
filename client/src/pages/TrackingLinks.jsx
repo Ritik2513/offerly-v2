@@ -25,8 +25,8 @@ const TrackingLinks = () => {
           API.get("/users/affiliates"),
         ]);
 
-        setOffers(offersRes.data.data || []);
-        setAffiliates(affiliatesRes.data.users || []);
+        setOffers(offersRes.data.data?.offers || []);
+        setAffiliates(affiliatesRes.data?.users || []);
       } catch (error) {
         console.log(error);
         toast.error("Failed to fetch data");
@@ -137,7 +137,7 @@ const TrackingLinks = () => {
                 <option value="">Select Affiliate</option>
 
                 {affiliates.map((affiliate) => (
-                  <option key={affiliate._id} value={affiliate._id}>
+                  <option key={affiliate.id} value={affiliate.id}>
                     {affiliate.name}
                   </option>
                 ))}
@@ -172,7 +172,7 @@ const TrackingLinks = () => {
                 <option value="">Select Offer</option>
 
                 {offers.map((offer) => (
-                  <option key={offer._id} value={offer._id}>
+                  <option key={offer.id} value={offer.id}>
                     {offer.title}
                   </option>
                 ))}

@@ -25,7 +25,7 @@ const stats = [
     color: "bg-red-100 text-red-600",
   },
   {
-    key: "revenue",
+    key: "totalRevenue",
     label: "Revenue",
     icon: IndianRupee,
     color: "bg-blue-100 text-blue-600",
