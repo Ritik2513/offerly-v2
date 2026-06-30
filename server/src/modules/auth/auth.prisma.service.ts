@@ -27,6 +27,7 @@ export const registerUserPrisma = async ({
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const tenant = await prisma.tenant.findFirst();
 
   const user = await prisma.user.create({
     data: {
@@ -34,6 +35,7 @@ export const registerUserPrisma = async ({
       email,
       password: hashedPassword,
       role: role || "affiliate",
+      tenantId: tenant!.id,
     },
   });
 
@@ -41,7 +43,12 @@ export const registerUserPrisma = async ({
 };
 
 export const loginUserPrisma = async ({ email, password }: LoginInput) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      tenant: true,
+    },
+  });
 
   if (!user) {
     throw new ApiError(404, "User not found");
