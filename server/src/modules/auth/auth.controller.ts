@@ -19,7 +19,7 @@ export const register = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const user = await registerUserPrisma(req.body);
 
-    const token = generateToken(user.id.toString());
+    const token = generateToken(user.id, user.tenantId);
 
     res
       .status(201)
@@ -33,7 +33,7 @@ export const login = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const user = await loginUserPrisma(req.body);
 
-    const token = generateToken(user.id.toString());
+    const token = generateToken(user.id, user.tenantId);
 
     res
       .status(200)

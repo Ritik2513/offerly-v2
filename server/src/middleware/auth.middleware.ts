@@ -19,17 +19,26 @@ export const protect = asyncHandler(
       process.env.JWT_SECRET as string,
     ) as JwtPayload;
 
+    // attach tenant to request
+    req.tenantId = decoded.tenantId;
+
+    // verify user belongs to same tenant
     const user = await prisma.user.findUnique({
       where: {
         id: decoded.id,
+        tenantId: decoded.tenantId,
       },
     });
-
-    req.user = user;
 
     if (!user) {
       throw new ApiError(401, "User not found");
     }
+
+    if (!user.isActive) {
+      throw new ApiError(403, "Account disabled");
+    }
+
+    req.user = user;
     next();
   },
 );

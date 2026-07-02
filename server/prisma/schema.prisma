@@ -8,14 +8,19 @@ datasource db {
 }
 
 model Tenant {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  users         User[]
+  offers        Offer[]
+  trackingLinks TrackingLink[]
+  clicks        Click[]
+  conversions   Conversion[]
+  payouts       Payout[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  users   User[]
-  offers Offer[]
 }
 
 model User {
@@ -67,6 +72,9 @@ model TrackingLink {
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   clicks      Click[]
   conversions Conversion[]
 
@@ -88,6 +96,9 @@ model Click {
 
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   ip      String?
   country String?
@@ -116,6 +127,7 @@ model Conversion {
   trackingLinkId String
   offerId        String
   affiliateId    String
+  tenantId       String
 
   revenue Float
   payout  Float
@@ -132,6 +144,7 @@ model Conversion {
   trackingLink TrackingLink @relation(fields: [trackingLinkId], references: [id])
   offer        Offer        @relation(fields: [offerId], references: [id])
   affiliate    User         @relation(fields: [affiliateId], references: [id])
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
 
   payoutRecord Payout? @relation(fields: [payoutId], references: [id])
 
@@ -142,6 +155,7 @@ model Payout {
   id String @id @default(cuid())
 
   affiliateId String
+  tenantId    String
   amount      Float
 
   status String    @default("pending")
@@ -150,7 +164,8 @@ model Payout {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  affiliate User @relation(fields: [affiliateId], references: [id])
+  affiliate User   @relation(fields: [affiliateId], references: [id])
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
 
   conversions Conversion[]
 }
