@@ -31,7 +31,10 @@ export const createOffer = asyncHandler(
     req: Request<{}, {}, CreateOfferBody>,
     res: Response,
   ): Promise<void> => {
-    const offer = await createOfferPrisma(req.body);
+    const offer = await createOfferPrisma({
+      ...req.body,
+      tenantId: req.tenantId!,
+    });
 
     res.status(201).json(new ApiResponse(201, offer, "Offer created"));
   },
@@ -48,6 +51,7 @@ export const getOffers = asyncHandler(
       limit: Number(req.query.limit) || 10,
       search: req.query.search,
       status: req.query.status,
+      tenantId: req.tenantId!,
     });
 
     res
@@ -61,7 +65,7 @@ export const getOffer = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params as { id: string };
 
-    const offer = await getOfferPrisma(id);
+    const offer = await getOfferPrisma(id, req.tenantId!);
 
     res.status(200).json(new ApiResponse(200, offer, "Offer fetched"));
   },
@@ -75,7 +79,7 @@ export const updateOffer = asyncHandler(
   ): Promise<void> => {
     const { id } = req.params as { id: string };
 
-    const offer = await updateOfferPrisma(id, req.body);
+    const offer = await updateOfferPrisma(id, req.tenantId!, req.body);
 
     res.status(200).json(new ApiResponse(200, offer, "Offer updated"));
   },
@@ -86,7 +90,7 @@ export const deleteOffer = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params as { id: string };
 
-    await deleteOfferPrisma(id);
+    await deleteOfferPrisma(id, req.tenantId!);
 
     res
       .status(200)

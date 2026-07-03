@@ -8,6 +8,7 @@ interface CreateOfferInput {
   landingPageUrl: string;
   payout: number;
   status?: string;
+  tenantId: string;
 }
 
 interface GetOfferInput {
@@ -15,6 +16,7 @@ interface GetOfferInput {
   limit?: number;
   search?: string;
   status?: string;
+  tenantId: string;
 }
 
 //create offer
@@ -23,7 +25,6 @@ export const createOfferPrisma = async (data: CreateOfferInput) => {
     data: {
       ...data,
       status: data.status || "active",
-      tenantId: req.tenantId,
     },
   });
 };
@@ -34,10 +35,12 @@ export const getOffersPrisma = async ({
   limit = 10,
   search = "",
   status,
+  tenantId,
 }: GetOfferInput) => {
   const skip = (page - 1) * limit;
 
   const where = {
+    tenantId,
     ...(search && {
       title: {
         contains: search,
@@ -73,9 +76,9 @@ export const getOffersPrisma = async ({
 };
 
 // Get Single Offer
-export const getOfferPrisma = async (id: string) => {
-  const offer = await prisma.offer.findUnique({
-    where: { id },
+export const getOfferPrisma = async (id: string, tenantId: string) => {
+  const offer = await prisma.offer.findFirst({
+    where: { id, tenantId },
   });
 
   if (!offer) {
@@ -88,10 +91,11 @@ export const getOfferPrisma = async (id: string) => {
 //update offer
 export const updateOfferPrisma = async (
   id: string,
+  tenantId: string,
   data: Partial<CreateOfferInput>,
 ) => {
   const existing = await prisma.offer.findUnique({
-    where: { id },
+    where: { id, tenantId },
   });
 
   if (!existing) {
@@ -105,9 +109,9 @@ export const updateOfferPrisma = async (
 };
 
 //Delete offer
-export const deleteOfferPrisma = async (id: string) => {
-  const existing = await prisma.offer.findUnique({
-    where: { id },
+export const deleteOfferPrisma = async (id: string, tenantId: string) => {
+  const existing = await prisma.offer.findFirst({
+    where: { id, tenantId },
   });
 
   if (!existing) {
