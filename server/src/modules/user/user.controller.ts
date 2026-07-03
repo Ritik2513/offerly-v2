@@ -10,13 +10,6 @@ import {
 
 import prisma from "../../config/prisma.js";
 
-interface UserQuery {
-  page?: string;
-  limit?: string;
-  search?: string;
-  status?: string;
-}
-
 /*
 ====================================
 CREATE AFFILIATE
@@ -25,8 +18,9 @@ CREATE AFFILIATE
 export const createAffiliate = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
+    const tenantId = req.tenantId;
 
-    const user = await createAffiliatePrisma(name, email, password);
+    const user = await createAffiliatePrisma(name, email, password, tenantId!);
 
     res.status(201).json({
       success: true,
@@ -48,7 +42,7 @@ GET AFFILIATES
 
 export const getAffiliates = async (req: Request, res: Response) => {
   try {
-    const users = await getAffiliatesPrisma();
+    const users = await getAffiliatesPrisma(req.tenantId!);
 
     res.status(200).json({
       success: true,
@@ -71,10 +65,11 @@ GET ALL AFFILIATES
 export const getAllAffiliates = async (req: Request, res: Response) => {
   try {
     const result = await getAllAffiliatesPrisma({
-      page: Number(req.query.page),
-      limit: Number(req.query.limit),
-      search: req.query.search as string,
-      status: req.query.status as string,
+      tenantId: req.tenantId!,
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      search: req.query.search as string || "",
+      status: req.query.status as string || "",
     });
 
     res.status(200).json({
@@ -82,7 +77,8 @@ export const getAllAffiliates = async (req: Request, res: Response) => {
       data: result.users,
       pagination: result.pagination,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch affiliates",
@@ -98,7 +94,10 @@ TOGGLE AFFILIATE STATUS
 
 export const toggleAffiliateStatus = async (req: Request, res: Response) => {
   try {
-    const user = await toggleAffiliateStatusPrisma(req.params.id as string);
+    const user = await toggleAffiliateStatusPrisma(
+      req.params.id as string,
+      req.tenantId!,
+    );
 
     res.status(200).json({
       success: true,
@@ -123,6 +122,7 @@ export const exportAffiliate = async (req: Request, res: Response) => {
     const affiliates = await prisma.user.findMany({
       where: {
         role: "affiliate",
+        tenantId: req.tenantId,
       },
     });
 

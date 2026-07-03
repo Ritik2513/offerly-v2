@@ -2,6 +2,7 @@ import prisma from "../../config/prisma.js";
 import bcrypt from "bcryptjs";
 
 interface GetAffiliateInput {
+  tenantId: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -12,6 +13,7 @@ export const createAffiliatePrisma = async (
   name: string,
   email: string,
   password: string,
+  tenantId: string,
 ) => {
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -29,14 +31,16 @@ export const createAffiliatePrisma = async (
       email,
       password: hashedPassword,
       role: "affiliate",
+      tenantId,
     },
   });
 };
 
-export const getAffiliatesPrisma = async () => {
+export const getAffiliatesPrisma = async (tenantId: string) => {
   return prisma.user.findMany({
     where: {
       role: "affiliate",
+      tenantId,
     },
 
     select: {
@@ -48,6 +52,7 @@ export const getAffiliatesPrisma = async () => {
 };
 
 export const getAllAffiliatesPrisma = async ({
+  tenantId,
   page = 1,
   limit = 10,
   search = "",
@@ -57,6 +62,7 @@ export const getAllAffiliatesPrisma = async ({
 
   const where = {
     role: "affiliate",
+    tenantId,
 
     ...(search && {
       OR: [
@@ -116,9 +122,12 @@ export const getAllAffiliatesPrisma = async ({
   };
 };
 
-export const toggleAffiliateStatusPrisma = async (id: string) => {
-  const user = await prisma.user.findUnique({
-    where: { id },
+export const toggleAffiliateStatusPrisma = async (
+  id: string,
+  tenantId: string,
+) => {
+  const user = await prisma.user.findFirst({
+    where: { id, tenantId, role: "affiliate" },
   });
 
   if (!user) {
@@ -133,5 +142,3 @@ export const toggleAffiliateStatusPrisma = async (id: string) => {
     },
   });
 };
-
-
