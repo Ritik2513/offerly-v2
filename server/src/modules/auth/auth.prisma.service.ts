@@ -7,6 +7,7 @@ interface RegisterInput {
   email: string;
   password: string;
   role?: string;
+  companyName: string;
 }
 
 interface LoginInput {
@@ -19,6 +20,7 @@ export const registerUserPrisma = async ({
   email,
   password,
   role,
+  companyName,
 }: RegisterInput) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
@@ -27,7 +29,14 @@ export const registerUserPrisma = async ({
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const tenant = await prisma.tenant.findFirst();
+
+  // create tenant first
+  const tenant = await prisma.tenant.create({
+    data: {
+      companyName: companyName,
+      slug: companyName.toLowerCase().replace(/\s+/g, "-"),
+    },
+  });
 
   const user = await prisma.user.create({
     data: {

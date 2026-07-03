@@ -9,7 +9,7 @@ datasource db {
 
 model Tenant {
   id   String @id @default(cuid())
-  name String
+  companyName String
   slug String @unique
 
   users         User[]

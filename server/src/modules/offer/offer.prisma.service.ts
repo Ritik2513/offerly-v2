@@ -23,6 +23,7 @@ export const createOfferPrisma = async (data: CreateOfferInput) => {
     data: {
       ...data,
       status: data.status || "active",
+      tenantId: req.tenantId,
     },
   });
 };

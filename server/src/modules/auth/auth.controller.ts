@@ -50,6 +50,7 @@ export const getMe = (req: Request, res: Response): void => {
   });
 };
 
+// Logout
 export const logout = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     res
