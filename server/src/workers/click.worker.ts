@@ -60,6 +60,7 @@ const worker = new Worker<ClickJobPayload>(
     logger.info("Click saved");
 
     await incrementClickStats({
+      tenantId: job.data.tenantId,
       offerId: clickDoc.offerId,
       affiliateId: clickDoc.affiliateId,
       country: clickDoc.country,
