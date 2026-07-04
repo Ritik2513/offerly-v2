@@ -7,6 +7,7 @@ interface GenerateTrackingInput {
   affiliateId?: string;
   userId: string;
   role: string;
+  tenantId: string;
 }
 
 export const generateTrackingLinkPrisma = async ({
@@ -14,25 +15,54 @@ export const generateTrackingLinkPrisma = async ({
   affiliateId,
   userId,
   role,
+  tenantId,
 }: GenerateTrackingInput) => {
-  const slug = nanoid(8);
-
-  const offer = await prisma.offer.findUnique({
+  // Verify offer belongs to current tenant
+  const offer = await prisma.offer.findFirst({
     where: {
       id: offerId,
+      tenantId,
     },
   });
 
   if (!offer) {
-    throw new ApiError(404, "Offer not found");
+    throw new ApiError(404, "Offer not found in your workspace");
   }
 
-  const link = await prisma.trackingLink.create({
+  let affiliateUserId = userId;
+
+  // Admin generates link for affiliate
+  if (role === "admin") {
+    if (!affiliateId) {
+      throw new ApiError(400, "Affiliate is required");
+    }
+
+    const affiliate = await prisma.user.findFirst({
+      where: {
+        id: affiliateId,
+        role: "affiliate",
+        tenantId,
+      },
+    });
+
+    if (!affiliate) {
+      throw new ApiError(
+        404,
+        "Affiliate not found in your workspace",
+      );
+    }
+
+    affiliateUserId = affiliate.id;
+  }
+
+  const slug = nanoid(8);
+
+  return prisma.trackingLink.create({
     data: {
       slug,
-      affiliateId: role === "admin" ? affiliateId! : userId,
+      affiliateId: affiliateUserId,
       offerId,
+      tenantId,
     },
   });
-  return link;
 };

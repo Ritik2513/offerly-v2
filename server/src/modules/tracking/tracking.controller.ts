@@ -1,19 +1,23 @@
 import { Request, Response } from "express";
 import asyncHandler from "../../utils/asyncHandler.js";
-
 import { nanoid } from "nanoid";
 
+import prisma from "../../config/prisma.js";
 import logger from "../../config/logger.js";
 
 import { clickQueue } from "../../queues/click.queue.js";
-
 import { ClickJobPayload } from "../../types/queue.types.js";
-
-import prisma from "../../config/prisma.js";
 
 import { generateTrackingLinkPrisma } from "./tracking.prisma.service.js";
 
+interface TrackingParams {
+  slug: string;
+}
+
+// =======================================
 // Generate Tracking Link
+// =======================================
+
 export const generateTrackingLink = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { offerId, affiliateId } = req.body;
@@ -23,6 +27,7 @@ export const generateTrackingLink = asyncHandler(
       affiliateId,
       userId: req.user!.id,
       role: req.user!.role,
+      tenantId: req.tenantId!,
     });
 
     res.status(201).json({
@@ -32,9 +37,12 @@ export const generateTrackingLink = asyncHandler(
   },
 );
 
+// =======================================
 // Track Click
+// =======================================
+
 export const trackClick = async (
-  req: Request,
+  req: Request<TrackingParams>,
   res: Response,
 ): Promise<void> => {
   try {
@@ -44,7 +52,6 @@ export const trackClick = async (
       where: {
         slug,
       },
-
       include: {
         offer: true,
       },
@@ -65,6 +72,8 @@ export const trackClick = async (
       affiliate: link.affiliateId,
 
       offer: link.offerId,
+
+      tenantId: link.tenantId,
 
       ip: req.ip || "",
 
