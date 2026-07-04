@@ -24,6 +24,7 @@ export const getClicks = asyncHandler(
       search: req.query.search,
 
       status: req.query.status,
+      tenantId: req.tenantId!,
     });
 
     res

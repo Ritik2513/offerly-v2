@@ -5,6 +5,7 @@ interface GetClicksInput {
   limit?: number;
   search?: string;
   status?: string;
+  tenantId: string;
 }
 
 interface CreateClickInput {
@@ -12,6 +13,7 @@ interface CreateClickInput {
   trackingLinkId: string;
   affiliateId: string;
   offerId: string;
+  tenantId: string;
   ip: string;
   country: string;
   city: string;
@@ -26,10 +28,12 @@ export const getClicksPrisma = async ({
   limit = 10,
   search = "",
   status,
+  tenantId,
 }: GetClicksInput) => {
   const skip = (page - 1) * limit;
 
   const where = {
+    tenantId,
     ...(search && {
       OR: [
         {
@@ -126,6 +130,7 @@ export const createClickPrisma = async ({
   trackingLinkId,
   affiliateId,
   offerId,
+  tenantId,
   ip,
   country,
   city,
@@ -140,6 +145,7 @@ export const createClickPrisma = async ({
       trackingLinkId,
       affiliateId,
       offerId,
+      tenantId,
       ip,
       country,
       city,
