@@ -1,19 +1,27 @@
 import prisma from "../../config/prisma.js";
+import ApiError from "../../utils/ApiError.js";
 
 interface GetPayoutInput {
+  tenantId: string;
   page?: number;
   limit?: number;
   search?: string;
   status?: string;
 }
 
-export const createPayoutPrisma = async (affiliateId: string) => {
+export const createPayoutPrisma = async (
+  affiliateId: string,
+  tenantId: string,
+) => {
   const conversions = await prisma.conversion.findMany({
     where: {
       affiliateId,
+      tenantId,
+
       payout: {
         gt: 0,
       },
+
       payoutStatus: {
         not: "paid",
       },
@@ -21,7 +29,7 @@ export const createPayoutPrisma = async (affiliateId: string) => {
   });
 
   if (!conversions.length) {
-    throw new Error("No payable conversions");
+    throw new ApiError(404, "No payable conversions");
   }
 
   const totalAmount = conversions.reduce((acc, curr) => acc + curr.payout, 0);
@@ -29,6 +37,7 @@ export const createPayoutPrisma = async (affiliateId: string) => {
   const payout = await prisma.payout.create({
     data: {
       affiliateId,
+      tenantId,
       amount: totalAmount,
 
       conversions: {
@@ -41,6 +50,8 @@ export const createPayoutPrisma = async (affiliateId: string) => {
 
   await prisma.conversion.updateMany({
     where: {
+      tenantId,
+
       id: {
         in: conversions.map((c) => c.id),
       },
@@ -56,6 +67,7 @@ export const createPayoutPrisma = async (affiliateId: string) => {
 };
 
 export const getPayoutPrisma = async ({
+  tenantId,
   page = 1,
   limit = 10,
   search = "",
@@ -64,7 +76,11 @@ export const getPayoutPrisma = async ({
   const skip = (page - 1) * limit;
 
   const where = {
-    ...(status && { status }),
+    tenantId,
+
+    ...(status && {
+      status,
+    }),
 
     ...(search && {
       affiliate: {
@@ -87,14 +103,29 @@ export const getPayoutPrisma = async ({
     }),
   };
 
-  const totalItems = await prisma.payout.count({ where });
+  const totalItems = await prisma.payout.count({
+    where,
+  });
 
   const payouts = await prisma.payout.findMany({
     where,
 
     include: {
-      affiliate: true,
-      conversions: true,
+      affiliate: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      conversions: {
+        select: {
+          id: true,
+          revenue: true,
+          payout: true,
+        },
+      },
     },
 
     skip,
@@ -105,10 +136,10 @@ export const getPayoutPrisma = async ({
     },
   });
 
-  // Analytics
-  //grouped by status
   const groupedStatus = await prisma.payout.groupBy({
     by: ["status"],
+
+    where,
 
     _count: {
       status: true,
@@ -117,8 +148,6 @@ export const getPayoutPrisma = async ({
     _sum: {
       amount: true,
     },
-
-    where,
   });
 
   let totalPaid = 0;
@@ -129,35 +158,36 @@ export const getPayoutPrisma = async ({
     totalPayouts += item._count.status;
 
     if (item.status === "paid") {
-      totalPaid = item._sum.amount || 0;
+      totalPaid = item._sum.amount ?? 0;
     }
 
     if (item.status === "pending") {
-      totalPending = item._sum.amount || 0;
+      totalPending = item._sum.amount ?? 0;
     }
   });
 
-  // UNIQUE AFFILIATES
   const uniqueAffiliateData = await prisma.payout.findMany({
     where,
+
+    distinct: ["affiliateId"],
+
     select: {
       affiliateId: true,
     },
-    distinct: ["affiliateId"],
   });
 
   const uniqueAffiliates = uniqueAffiliateData.length;
 
-  const analytics = {
-    totalPaid,
-    totalPending,
-    totalPayouts,
-    uniqueAffiliates,
-  };
-
   return {
     payouts,
-    analytics,
+
+    analytics: {
+      totalPaid,
+      totalPending,
+      totalPayouts,
+      uniqueAffiliates,
+    },
+
     pagination: {
       page,
       totalItems,
@@ -166,23 +196,26 @@ export const getPayoutPrisma = async ({
   };
 };
 
-export const markPayoutPaidPrisma = async (id: string) => {
-  const payout = await prisma.payout.findUnique({
+export const markPayoutPaidPrisma = async (id: string, tenantId: string) => {
+  const payout = await prisma.payout.findFirst({
     where: {
       id,
+      tenantId,
     },
   });
 
   if (!payout) {
-    throw new Error("Payout not found");
+    throw new ApiError(404, "Payout not found");
   }
 
   if (payout.status === "paid") {
-    throw new Error("Already paid");
+    throw new ApiError(400, "Already paid");
   }
 
   return prisma.payout.update({
-    where: { id },
+    where: {
+      id,
+    },
 
     data: {
       status: "paid",

@@ -1,11 +1,10 @@
 import prisma from "../../config/prisma.js";
+import ApiError from "../../utils/ApiError.js";
 
 export const processPostbackPrisma = async (
   clickId: string,
   amount?: number,
 ) => {
-  // find click
-
   const click = await prisma.click.findUnique({
     where: {
       clickId,
@@ -18,30 +17,25 @@ export const processPostbackPrisma = async (
   });
 
   if (!click) {
-    throw new Error("Click not found");
+    throw new ApiError(404, "Click not found");
   }
-
-  // already converted
 
   if (click.isConverted) {
-    throw new Error("Already converted");
+    throw new ApiError(400, "Already converted");
   }
 
-  const revenue = amount || click.offer.payout;
-
+  const revenue = amount ?? click.offer.payout;
   const affiliatePayout = click.offer.payout;
 
-  // transaction (important)
-
   return prisma.$transaction(async (tx) => {
-    // create conversion
-
     const conversion = await tx.conversion.create({
       data: {
         clickId: click.id,
         trackingLinkId: click.trackingLinkId,
         affiliateId: click.affiliateId,
         offerId: click.offerId,
+
+        tenantId: click.tenantId,
 
         revenue,
         payout: affiliatePayout,
@@ -51,11 +45,12 @@ export const processPostbackPrisma = async (
       },
     });
 
-    // create payout
-
     await tx.payout.create({
       data: {
         affiliateId: click.affiliateId,
+
+        tenantId: click.tenantId,
+
         amount: affiliatePayout,
 
         conversions: {
@@ -69,8 +64,6 @@ export const processPostbackPrisma = async (
         status: "pending",
       },
     });
-
-    // mark click converted
 
     await tx.click.update({
       where: {

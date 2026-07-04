@@ -10,6 +10,7 @@ export const getConversions = async (
 ): Promise<void> => {
   try {
     const result = await getConversionsPrisma({
+      tenantId: req.tenantId!,
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 10,
       search: req.query.search as string,
@@ -32,6 +33,9 @@ export const getConversions = async (
 export const exportConversions = async (req: Request, res: Response) => {
   try {
     const conversions = await prisma.conversion.findMany({
+      where: {
+        tenantId: req.tenantId!,
+      },
       include: {
         affiliate: true,
         offer: true,

@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import logger from "../../config/logger.js";
-
 import { processPostbackPrisma } from "./postback.prisma.service.js";
 
 interface PostbackQuery {
@@ -13,7 +12,8 @@ export const postbackConversion = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { clickId, amount } = req.query;
+    const clickId = req.query.clickId;
+    const amount = req.query.amount;
 
     if (!clickId) {
       res.status(400).json({

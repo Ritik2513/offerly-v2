@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import prisma from "../../config/prisma.js";
 import { exportCSV } from "../../utils/csvExport.js";
 
 import {
@@ -7,13 +8,8 @@ import {
   markPayoutPaidPrisma,
 } from "./payout.prisma.service.js";
 
-import prisma from "../../config/prisma.js";
-
-interface PayoutQuery {
-  page?: string;
-  limit?: string;
-  search?: string;
-  status?: string;
+interface PayoutParams {
+  id: string;
 }
 
 /*
@@ -28,7 +24,7 @@ export const createPayout = async (
   try {
     const { affiliateId } = req.body;
 
-    const payout = await createPayoutPrisma(affiliateId);
+    const payout = await createPayoutPrisma(affiliateId, req.tenantId!);
 
     res.status(201).json({
       success: true,
@@ -37,7 +33,7 @@ export const createPayout = async (
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to create payout",
+      message: error.message,
     });
   }
 };
@@ -49,13 +45,12 @@ GET PAYOUTS
 */
 export const getPayout = async (req: Request, res: Response): Promise<void> => {
   try {
-    const query = req.query as PayoutQuery;
-
     const result = await getPayoutPrisma({
-      page: Number(query.page) || 1,
-      limit: Number(query.limit) || 10,
-      search: query.search?.trim() || "",
-      status: query.status || "",
+      tenantId: req.tenantId!,
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      search: (req.query.search as string) || "",
+      status: (req.query.status as string) || "",
     });
 
     res.status(200).json({
@@ -67,24 +62,22 @@ export const getPayout = async (req: Request, res: Response): Promise<void> => {
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to fetch payouts",
+      message: error.message,
     });
   }
 };
 
 /*
 =================================
-MARK PAYOUT PAID
+MARK PAID
 =================================
 */
 export const markPayoutPaid = async (
-  req: Request,
+  req: Request<PayoutParams>,
   res: Response,
 ): Promise<void> => {
   try {
-    const { id } = req.params as { id: string };
-
-    await markPayoutPaidPrisma(id);
+    await markPayoutPaidPrisma(req.params.id, req.tenantId!);
 
     res.status(200).json({
       success: true,
@@ -93,24 +86,29 @@ export const markPayoutPaid = async (
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to update payout",
+      message: error.message,
     });
   }
 };
 
 /*
 =================================
-EXPORT PAYOUTS
+EXPORT CSV
 =================================
 */
-export const exportPayouts = async (
-  req: Request,
-  res: Response,
-): Promise<Response | void> => {
+export const exportPayouts = async (req: Request, res: Response) => {
   try {
     const payouts = await prisma.payout.findMany({
+      where: {
+        tenantId: req.tenantId!,
+      },
+
       include: {
         affiliate: true,
+      },
+
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
@@ -131,7 +129,7 @@ export const exportPayouts = async (
   } catch (error: any) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to export payouts",
+      message: error.message,
     });
   }
 };

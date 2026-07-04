@@ -1,6 +1,7 @@
 import prisma from "../../config/prisma.js";
 
 interface GetConversionsInput {
+  tenantId: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -8,6 +9,7 @@ interface GetConversionsInput {
 }
 
 export const getConversionsPrisma = async ({
+  tenantId,
   page = 1,
   limit = 10,
   search = "",
@@ -16,6 +18,7 @@ export const getConversionsPrisma = async ({
   const skip = (page - 1) * limit;
 
   const where = {
+    tenantId,
     ...(status && { status }),
 
     ...(search && {
@@ -75,6 +78,9 @@ export const getConversionsPrisma = async ({
   //grouped counts
   const groupedStatus = await prisma.conversion.groupBy({
     by: ["status"],
+    where: {
+      tenantId,
+    },
     _count: {
       status: true,
     },
@@ -83,6 +89,7 @@ export const getConversionsPrisma = async ({
   //approved revenue
   const approvedRevenue = await prisma.conversion.aggregate({
     where: {
+      tenantId,
       status: "approved",
     },
     _sum: {
