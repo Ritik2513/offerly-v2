@@ -44,10 +44,16 @@ export const login = asyncHandler(
 
 // ME
 export const getMe = (req: Request, res: Response): void => {
-  res.status(200).json({
-    success: true,
-    user: req.user,
-  });
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: req.user,
+        tenantId: req.tenantId,
+      },
+      "Profile fetched successfully",
+    ),
+  );
 };
 
 // Logout
