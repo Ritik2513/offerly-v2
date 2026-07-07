@@ -26,10 +26,10 @@ export const createAffiliate = async (req: Request, res: Response) => {
       success: true,
       user,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Failed to create affiliate",
+      message: error.message,
     });
   }
 };
@@ -68,8 +68,8 @@ export const getAllAffiliates = async (req: Request, res: Response) => {
       tenantId: req.tenantId!,
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 10,
-      search: req.query.search as string || "",
-      status: req.query.status as string || "",
+      search: (req.query.search as string) || "",
+      status: (req.query.status as string) || "",
     });
 
     res.status(200).json({
