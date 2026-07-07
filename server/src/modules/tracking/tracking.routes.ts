@@ -7,6 +7,7 @@ import { postbackConversion } from "./postback.controller.js";
 
 import validate from "../../middleware/validate.middleware.js";
 import { generateTrackingSchema } from "../../validations/tracking.validation.js";
+import { postbackSchema } from "../../validations/postback.validation.js";
 
 const router = Router();
 
@@ -20,6 +21,6 @@ router.post(
 
 router.get("/t/:slug", trackClick);
 
-router.get("/postback", postbackConversion);
+router.get("/postback", validate(postbackSchema), postbackConversion);
 
 export default router;
