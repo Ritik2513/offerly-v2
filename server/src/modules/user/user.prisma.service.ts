@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcryptjs";
+import ApiError from "../../utils/ApiError.js";
 
 interface GetAffiliateInput {
   tenantId: string;
@@ -20,7 +21,7 @@ export const createAffiliatePrisma = async (
   });
 
   if (existingUser) {
-    throw new Error("Email already exists");
+    throw new ApiError(409, "Email already exists");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -131,7 +132,7 @@ export const toggleAffiliateStatusPrisma = async (
   });
 
   if (!user) {
-    throw new Error("Affiliate not found");
+    throw new ApiError(404, "Affiliate not found");
   }
 
   return prisma.user.update({

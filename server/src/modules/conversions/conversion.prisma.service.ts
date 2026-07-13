@@ -78,18 +78,15 @@ export const getConversionsPrisma = async ({
   //grouped counts
   const groupedStatus = await prisma.conversion.groupBy({
     by: ["status"],
-    where: {
-      tenantId,
-    },
+    where,
     _count: {
       status: true,
     },
   });
 
-  //approved revenue
   const approvedRevenue = await prisma.conversion.aggregate({
     where: {
-      tenantId,
+      ...where,
       status: "approved",
     },
     _sum: {

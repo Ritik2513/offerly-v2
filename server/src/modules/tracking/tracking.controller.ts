@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import asyncHandler from "../../utils/asyncHandler.js";
+import ApiResponse from "../../utils/ApiResponse.js";
 import { nanoid } from "nanoid";
 
 import prisma from "../../config/prisma.js";
@@ -30,10 +31,15 @@ export const generateTrackingLink = asyncHandler(
       tenantId: req.tenantId!,
     });
 
-    res.status(201).json({
-      success: true,
-      trackingUrl: `${process.env.SERVER_URL}/api/tracking/t/${link.slug}`,
-    });
+    res.status(201).json(
+      new ApiResponse(
+        201,
+        {
+          trackingUrl: `${process.env.SERVER_URL}/api/tracking/t/${link.slug}`,
+        },
+        "Tracking link generated successfully",
+      ),
+    );
   },
 );
 

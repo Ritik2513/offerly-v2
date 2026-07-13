@@ -1,42 +1,34 @@
 import { Request, Response } from "express";
-import logger from "../../config/logger.js";
 import { processPostbackPrisma } from "./postback.prisma.service.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import ApiError from "../../utils/ApiError.js";
 
 interface PostbackQuery {
   clickId?: string;
   amount?: string;
 }
 
-export const postbackConversion = async (
-  req: Request<{}, {}, {}, PostbackQuery>,
-  res: Response,
-): Promise<void> => {
-  try {
-    const clickId = req.query.clickId;
-    const amount = req.query.amount;
+export const postbackConversion = asyncHandler(
+  async (
+    req: Request<{}, {}, {}, PostbackQuery>,
+    res: Response,
+  ): Promise<void> => {
+    const { clickId, amount } = req.query;
 
     if (!clickId) {
-      res.status(400).json({
-        message: "Missing clickId",
-      });
-      return;
+      throw new ApiError(400, "Missing clickId");
     }
 
-    await processPostbackPrisma(clickId, amount ? Number(amount) : undefined);
+    const conversion = await processPostbackPrisma(
+      clickId,
+      amount ? Number(amount) : undefined,
+    );
 
-    res.send("OK");
-  } catch (error: any) {
-    logger.error(error);
-
-    if (error.message === "Already converted") {
-      res.status(200).json({
-        message: "Already converted",
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: error.message || "Error",
-    });
-  }
-};
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, conversion, "Conversion processed successfully"),
+      );
+  },
+);
