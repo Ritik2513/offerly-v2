@@ -31,10 +31,10 @@ const Login = () => {
     try {
       await API.post("/auth/login", form);
       const { data } = await API.get("/auth/me");
-      setUser(data.user);
+      setUser(data.data.user);
 
       toast.success("Welcome back", { id: toastId });
-      if (data.user.role === "admin") {
+      if (data.data.user.role === "admin") {
         navigate("/dashboard");
       } else {
         navigate("/affiliate");
@@ -91,12 +91,8 @@ const Login = () => {
             Sign in to your Offerly workspace.
           </p>
           <p>Demo Credentials</p>
-          <p className="text-gray-500">
-           Email - admin@test.com
-          </p>
-          <p className="text-gray-500 mb-8">
-            password - 123456
-          </p>
+          <p className="text-gray-500">Email - admin@test.com</p>
+          <p className="text-gray-500 mb-8">password - 123456</p>
 
           {/* Social Login */}
           {/* <div className="flex gap-4 mb-6">

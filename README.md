@@ -221,6 +221,9 @@ The project is currently focused on production-grade improvements.
 * Email Notifications
 * Webhook Integrations
 * Real-Time Analytics Dashboard
+* Unique Offer Determination
+* When admin create affiliate it must send details like name, password, email to affiliate email
+* 2 step verification
 
 ---
 

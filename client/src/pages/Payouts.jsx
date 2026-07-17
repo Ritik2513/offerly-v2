@@ -38,9 +38,9 @@ const Payouts = () => {
           status,
         },
       });
-      setPayout(data.data || []);
-      setAnalytics(data.analytics || {});
-      setPagination(data.pagination);
+      setPayout(data.data.payouts || []);
+      setAnalytics(data.data.analytics || {});
+      setPagination(data.data.pagination);
     } catch (error) {
       toast.error("Failed to fetch payouts");
     } finally {

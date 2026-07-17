@@ -54,8 +54,23 @@ export const registerUserPrisma = async ({
 export const loginUserPrisma = async ({ email, password }: LoginInput) => {
   const user = await prisma.user.findUnique({
     where: { email },
-    include: {
-      tenant: true,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      tenantId: true,
+      createdAt: true,
+      updatedAt: true,
+      tenant: {
+        select: {
+          id: true,
+          companyName: true,
+          slug: true,
+        },
+      },
+      password: true,
     },
   });
 
@@ -72,5 +87,8 @@ export const loginUserPrisma = async ({ email, password }: LoginInput) => {
   if (!isMatch) {
     throw new ApiError(401, "Invalid Credentials");
   }
-  return user;
+
+  const { password: _, ...safeUser } = user;
+
+  return safeUser;
 };

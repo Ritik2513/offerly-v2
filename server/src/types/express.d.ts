@@ -1,9 +1,13 @@
-import { User } from "@prisma/client";
+import { User, Tenant } from "@prisma/client";
+
+type AuthUser = User & {
+  tenant: Pick<Tenant, "id" | "companyName" | "slug">;
+};
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: AuthUser;
       tenantId?: string;
     }
   }

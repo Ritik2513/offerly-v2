@@ -26,10 +26,19 @@ export const protect = asyncHandler(
     req.tenantId = decoded.tenantId;
 
     // verify user belongs to same tenant
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: {
         id: decoded.id,
         tenantId: decoded.tenantId,
+      },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            companyName: true,
+            slug: true,
+          },
+        },
       },
     });
 

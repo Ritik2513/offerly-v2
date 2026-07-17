@@ -50,8 +50,8 @@ const Affiliates = () => {
         },
       });
 
-      setAffiliates(data.data || []);
-      setPagination(data.pagination);
+      setAffiliates(data.data.users || []);
+      setPagination(data.data.pagination);
     } catch (error) {
       toast.error("Failed to fetch affiliates");
     } finally {
