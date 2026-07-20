@@ -38,7 +38,6 @@ export const protect = asyncHandler(
         },
       },
     });
-    console.log(user)
     
     if (!user) {
       throw new ApiError(401, "User not found");
