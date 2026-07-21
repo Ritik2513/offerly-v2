@@ -1,5 +1,7 @@
 import prisma from "../../config/prisma.js";
 import ApiError from "../../utils/ApiError.js";
+import { getIO } from "../../socket/socket.server.js";
+import { SOCKET_EVENTS } from "../../socket/events.js";
 
 interface GetPayoutInput {
   tenantId: string;
@@ -47,6 +49,9 @@ export const createPayoutPrisma = async (
       },
     },
   });
+
+  const io = getIO();
+  io.to(`tenant:${tenantId}`).emit(SOCKET_EVENTS.PAYOUT_CREATED, payout);
 
   await prisma.conversion.updateMany({
     where: {
@@ -212,7 +217,7 @@ export const markPayoutPaidPrisma = async (id: string, tenantId: string) => {
     throw new ApiError(400, "Already paid");
   }
 
-  return prisma.payout.update({
+  const updated = await prisma.payout.update({
     where: {
       id,
     },
@@ -222,4 +227,9 @@ export const markPayoutPaidPrisma = async (id: string, tenantId: string) => {
       paidAt: new Date(),
     },
   });
+
+  const io = getIO();
+  io.to(`tenant:${tenantId}`).emit(SOCKET_EVENTS.PAYOUT_UPDATED, updated);
+
+  return updated;
 };

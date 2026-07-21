@@ -1,4 +1,6 @@
 import prisma from "../../config/prisma.js";
+import { getIO } from "../../socket/socket.server.js";
+import { SOCKET_EVENTS } from "../../socket/events.js";
 
 interface GetClicksInput {
   page?: number;
@@ -139,7 +141,7 @@ export const createClickPrisma = async ({
   os,
   referer,
 }: CreateClickInput) => {
-  return prisma.click.create({
+  const click = await prisma.click.create({
     data: {
       clickId,
       trackingLinkId,
@@ -154,5 +156,28 @@ export const createClickPrisma = async ({
       os,
       referer,
     },
+
+    include: {
+      affiliate: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      offer: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
   });
+
+  const io = getIO();
+
+  io.to(`tenant:${tenantId}`).emit(SOCKET_EVENTS.CLICK_TRACKED, click);
+
+  return click;
 };

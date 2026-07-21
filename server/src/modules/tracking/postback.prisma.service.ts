@@ -1,5 +1,7 @@
 import prisma from "../../config/prisma.js";
 import ApiError from "../../utils/ApiError.js";
+import { getIO } from "../../socket/socket.server.js";
+import { SOCKET_EVENTS } from "../../socket/events.js";
 
 export const processPostbackPrisma = async (
   clickId: string,
@@ -27,7 +29,7 @@ export const processPostbackPrisma = async (
   const revenue = amount ?? click.offer.payout;
   const affiliatePayout = click.offer.payout;
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const conversion = await tx.conversion.create({
       data: {
         clickId: click.id,
@@ -77,4 +79,17 @@ export const processPostbackPrisma = async (
 
     return conversion;
   });
+
+  const io = getIO();
+  io.to(`tenant:${result.tenantId}`).emit(SOCKET_EVENTS.CONVERSION_CREATED, {
+    id: result.id,
+    affiliateId: result.affiliateId,
+    offerId: result.offerId,
+    revenue: result.revenue,
+    payout: result.payout,
+    status: result.status,
+    createdAt: result.createdAt,
+  });
+
+  return result;
 };

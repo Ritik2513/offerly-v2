@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import API from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import API from "../api/axios";
+import socket from "../socket/socket";
 
 const AuthContext = createContext();
 
@@ -14,8 +15,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.get("/auth/me");
       setUser(data.data.user);
+
+      if (!socket.connected) {
+        socket.connect();
+      }
     } catch (err) {
       setUser(null);
+
+      if (socket.connected) {
+        socket.disconnect();
+      }
     } finally {
       setLoading(false);
     }
@@ -27,8 +36,25 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await API.post("/auth/logout");
+
+    socket.disconnect();
     setUser(null);
   };
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("🟢 Socket Connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔴 Socket Disconnected");
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>

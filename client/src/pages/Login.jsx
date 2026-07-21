@@ -3,6 +3,7 @@ import API from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import socket from "../socket/socket";
 
 const Login = () => {
   const { setUser } = useAuth();
@@ -32,6 +33,10 @@ const Login = () => {
       await API.post("/auth/login", form);
       const { data } = await API.get("/auth/me");
       setUser(data.data.user);
+
+      if (!socket.connected) {
+        socket.connect();
+      }
 
       toast.success("Welcome back", { id: toastId });
       if (data.data.user.role === "admin") {
