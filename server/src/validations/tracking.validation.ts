@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const generateTrackingSchema = z.object({
   body: z.object({
-    offerId: z.string().uuid("Invalid offer ID"),
+    offerId: z.string().cuid("Invalid offer ID"),
 
-    affiliateId: z.string().uuid("Invalid affiliate ID").optional(),
+    affiliateId: z.string().cuid("Invalid affiliate ID").optional(),
   }),
 });

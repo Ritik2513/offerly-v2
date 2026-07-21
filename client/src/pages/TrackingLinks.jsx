@@ -26,7 +26,7 @@ const TrackingLinks = () => {
         ]);
 
         setOffers(offersRes.data.data?.offers || []);
-        setAffiliates(affiliatesRes.data?.users || []);
+        setAffiliates(affiliatesRes.data.data || []);
       } catch (error) {
         console.log(error);
         toast.error("Failed to fetch data");
@@ -53,7 +53,8 @@ const TrackingLinks = () => {
     try {
       const { data } = await API.post("/tracking/generate", form);
 
-      setGeneratedLink(data.trackingUrl);
+      setGeneratedLink(data.data?.trackingUrl);
+
 
       toast.success("Tracking link generated", {
         id: toastId,

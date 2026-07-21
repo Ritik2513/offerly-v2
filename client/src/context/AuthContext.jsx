@@ -41,21 +41,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("🟢 Socket Connected:", socket.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("🔴 Socket Disconnected");
-    });
-
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-    };
-  }, []);
-
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       {children}

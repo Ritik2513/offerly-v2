@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 import StatCard from "../components/StatCard";
 import AnalyticsChart from "../components/AnalyticsChart";
+import { useSocket } from "../context/SocketContext";
+import { SOCKET_EVENTS } from "../socket/events";
 
 import {
   Globe,
@@ -38,6 +40,7 @@ const Dashboard = () => {
             API.get("/analytics/trends"),
           ]);
 
+          
         setStats({
           totalClicks: todayRes.data?.data?.total || 0,
           countries: Object.keys(countryRes.data?.data || {}).length,
