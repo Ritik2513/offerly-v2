@@ -59,12 +59,27 @@ const worker = new Worker<ClickJobPayload>(
 
     logger.info("Click saved");
 
+    logger.info("Incrementing Redis analytics...");
+
     await incrementClickStats({
       tenantId: job.data.tenantId,
       offerId: clickDoc.offerId,
       affiliateId: clickDoc.affiliateId,
       country: clickDoc.country,
     });
+
+    logger.info("Redis analytics updated");
+
+    await redisConnection.publish(
+      "analytics-events",
+      JSON.stringify({
+        type: "CLICK_TRACKED",
+        tenantId,
+        click: clickDoc,
+      }),
+    );
+
+    logger.info("Analytics event published");
   },
 
   {

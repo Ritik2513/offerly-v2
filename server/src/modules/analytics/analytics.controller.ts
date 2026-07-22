@@ -22,6 +22,8 @@ export const getTodayStats = async (
     const stats = await redisQueueConnection.hgetall(
       `stats:${tenantId}:click:${date}`,
     );
+    
+    console.log(tenantId)
 
     res.status(200).json({
       success: true,

@@ -24,6 +24,8 @@ const Dashboard = () => {
     affiliates: 0,
   });
 
+  const socket = useSocket();
+
   const [trendData, setTrendData] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,6 @@ const Dashboard = () => {
             API.get("/analytics/trends"),
           ]);
 
-          
         setStats({
           totalClicks: todayRes.data?.data?.total || 0,
           countries: Object.keys(countryRes.data?.data || {}).length,
@@ -58,6 +59,37 @@ const Dashboard = () => {
 
     fetchAnalytics();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on(SOCKET_EVENTS.CLICK_TRACKED, (click) => {
+      console.log("Realtime Click");
+      console.log(click);
+
+      setStats((prev) => ({
+        ...prev,
+        totalClicks: prev.totalClicks + 1,
+      }));
+
+      setTrendData((prev) => {
+        const updated = [...prev];
+
+        if (updated.length > 0) {
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            clicks: updated[updated.length - 1].clicks + 1,
+          };
+        }
+
+        return updated;
+      });
+    });
+
+    return () => {
+      socket.off(SOCKET_EVENTS.CLICK_TRACKED);
+    };
+  }, [socket]);
 
   return (
     <div className="w-full font-inter">

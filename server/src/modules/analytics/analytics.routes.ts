@@ -13,15 +13,15 @@ import { protect, authorize } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/today", getTodayStats);
+router.get("/today", protect, getTodayStats);
 
-router.get("/countries", getCountryStats);
+router.get("/countries", protect, getCountryStats);
 
-router.get("/offers", getOfferStats);
+router.get("/offers", protect, getOfferStats);
 
-router.get("/admin", getAdminAnalytics);
+router.get("/admin", protect, getAdminAnalytics);
 
-router.get("/trends", getClickTrends);
+router.get("/trends", protect, getClickTrends);
 
 router.get(
   "/affiliate",
