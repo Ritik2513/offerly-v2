@@ -1,3 +1,5 @@
+import "../config/env.js";
+
 import { Job, Worker } from "bullmq";
 import geoip from "geoip-lite";
 import { createRequire } from "module";
@@ -6,6 +8,7 @@ const require = createRequire(import.meta.url);
 const UAParser = require("ua-parser-js");
 
 import redisConnection from "../config/redisQueue.js";
+import redisPublisher from "../config/redisPublisher.js";
 import { ClickJobPayload } from "../types/queue.types.js";
 
 import { incrementClickStats } from "../utils/analytics.helper.js";
@@ -70,7 +73,7 @@ const worker = new Worker<ClickJobPayload>(
 
     logger.info("Redis analytics updated");
 
-    await redisConnection.publish(
+    await redisPublisher.publish(
       "analytics-events",
       JSON.stringify({
         type: "CLICK_TRACKED",

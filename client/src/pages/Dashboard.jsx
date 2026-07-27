@@ -63,19 +63,18 @@ const Dashboard = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on(SOCKET_EVENTS.CLICK_TRACKED, (click) => {
-      console.log("Realtime Click");
-      console.log(click);
+    const handleClickTracked = (payload) => {
+      console.log("Realtime Event", payload);
 
       setStats((prev) => ({
         ...prev,
-        totalClicks: prev.totalClicks + 1,
+        totalClicks: Number(prev.totalClicks) + 1,
       }));
 
       setTrendData((prev) => {
         const updated = [...prev];
 
-        if (updated.length > 0) {
+        if (updated.length) {
           updated[updated.length - 1] = {
             ...updated[updated.length - 1],
             clicks: updated[updated.length - 1].clicks + 1,
@@ -84,10 +83,12 @@ const Dashboard = () => {
 
         return updated;
       });
-    });
+    };
+
+    socket.on(SOCKET_EVENTS.CLICK_TRACKED, handleClickTracked);
 
     return () => {
-      socket.off(SOCKET_EVENTS.CLICK_TRACKED);
+      socket.off(SOCKET_EVENTS.CLICK_TRACKED, handleClickTracked);
     };
   }, [socket]);
 

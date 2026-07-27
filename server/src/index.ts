@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/env.js";
 
 import http from "http";
 import app from "./app.js";
@@ -16,7 +15,12 @@ const startServer = async () => {
 
   initializeSocket(server);
 
-  server.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+  await initializeSubscriber();
+
+  server.listen(PORT, () => {
+    console.log("🚀 Server callback executed");
+    logger.info(`Server running on port ${PORT}`);
+  });
 };
 
 startServer();

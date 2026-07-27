@@ -1,31 +1,25 @@
-import redisQueueConnection from "../config/redisQueue.js";
+import redisSubscriber from "../config/redisSubscriber.js";
 import { getIO } from "./socket.server.js";
 import { SOCKET_EVENTS } from "./events.js";
 
-const subscriber = redisQueueConnection.duplicate();
-
 export const initializeSubscriber = async () => {
-  await subscriber.subscribe("analytics-events");
+    await redisSubscriber.subscribe("analytics-events");
 
-  console.log("📡 Redis Subscriber Initialized");
+    console.log("📡 Redis Subscriber Initialized");
 
-  subscriber.on("message", (channel, message) => {
-    if (channel !== "analytics-events") return;
+    redisSubscriber.on("message", (channel, message) => {
 
-    const payload = JSON.parse(message);
+        if (channel !== "analytics-events") return;
 
-    const io = getIO();
+        const payload = JSON.parse(message);
 
-    switch (payload.type) {
-      case "CLICK_TRACKED":
+        const io = getIO();
+
         io.to(`tenant:${payload.tenantId}`).emit(
-          SOCKET_EVENTS.CLICK_TRACKED,
-          payload.click,
+            SOCKET_EVENTS.CLICK_TRACKED,
+            payload
         );
 
-        console.log(`📤 CLICK_TRACKED emitted to tenant:${payload.tenantId}`);
-
-        break;
-    }
-  });
+        console.log("📤 Event sent to tenant:", payload.tenantId);
+    });
 };
