@@ -15,9 +15,11 @@ const CreateOfferForm = ({ onSuccess }) => {
   });
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -31,7 +33,18 @@ const CreateOfferForm = ({ onSuccess }) => {
     const toastId = toast.loading("Creating offer...");
 
     try {
-      const { data } = await API.post("/offers", form);
+      const payload = {
+        title: form.title,
+        category: form.category,
+        description: form.description,
+        landingPageUrl: form.landingPageUrl,
+        payout: Number(form.payout),
+        status: form.status,
+      };
+
+      const { data } = await API.post("/offers", payload);
+
+      console.log(data);
 
       toast.success("Offer created successfully", {
         id: toastId,
@@ -39,12 +52,9 @@ const CreateOfferForm = ({ onSuccess }) => {
 
       onSuccess(data);
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to create offer",
-        {
-          id: toastId,
-        }
-      );
+      toast.error(error.response?.data?.message || "Failed to create offer", {
+        id: toastId,
+      });
     } finally {
       setLoading(false);
     }

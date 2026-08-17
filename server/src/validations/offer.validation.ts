@@ -19,7 +19,7 @@ export const createOfferSchema = z.object({
 
     description: z.string().optional(),
 
-    isActive: z.boolean().optional(),
+    status: z.enum(["active", "paused"]).optional(),
   }),
 });
 
