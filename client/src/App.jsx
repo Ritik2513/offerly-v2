@@ -12,12 +12,14 @@ import AffiliateDashboard from "./pages/AffiliateDashboard";
 import Affiliates from "./pages/Affiliates";
 import RoleRoute from "./components/routes/RoleRoute";
 import Clicks from "./pages/Clicks";
+import Register from "./pages/Register";
 
 const App = () => {
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register/>}/>
 
         <Route element={<ProtectedRoute />}>
           {/* Admin Routes */}

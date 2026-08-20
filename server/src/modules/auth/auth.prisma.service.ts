@@ -43,7 +43,7 @@ export const registerUserPrisma = async ({
       name,
       email,
       password: hashedPassword,
-      role: role || "affiliate",
+      role: role || "admin",
       tenantId: tenant!.id,
     },
   });

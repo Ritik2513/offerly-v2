@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import socket from "../socket/socket";
 
-const Login = () => {
+const Register = () => {
   const { setUser } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
+    name: "",
     email: "",
     password: "",
+    companyName: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,10 +32,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await API.post("/auth/login", form);
+      await API.post("/auth/register", form);
       const { data } = await API.get("/auth/me");
       setUser(data.data.user);
 
+      console.log(data);
       if (!socket.connected) {
         socket.connect();
       }
@@ -96,30 +99,19 @@ const Login = () => {
             Sign in to your Offerly workspace.
           </p>
 
-          {/* Social Login */}
-          {/* <div className="flex gap-4 mb-6">
-            <button
-              type="button"
-              className="flex-1 flex items-center justify-center gap-2 border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition cursor-pointer"
-            >
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                className="w-5 h-5"
-              />
-              Google
-            </button>
-          </div> */}
-
-          {/* Divider */}
-          {/* <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium tracking-wider">
-              OR WITH EMAIL
-            </span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div> */}
-
           {/* EMAIL */}
+          <div className="mb-4">
+            <label className="text-sm font-medium text-gray-700">Name</label>
+            <input
+              type="text"
+              name="name"
+              required
+              onChange={handleChange}
+              placeholder="John Doe"
+              className="mt-1 w-full p-2 border border-gray-300 rounded-xl outline-none shadow-sm"
+            />
+          </div>
+
           <div className="mb-4">
             <label className="text-sm font-medium text-gray-700">Email</label>
             <input
@@ -156,6 +148,20 @@ const Login = () => {
             />
           </div>
 
+          <div className="mb-4">
+            <label className="text-sm font-medium text-gray-700">
+              Company Name
+            </label>
+            <input
+              type="text"
+              name="companyName"
+              required
+              onChange={handleChange}
+              placeholder="Click Melon Media Pvt. Ltd."
+              className="mt-1 w-full p-2 border border-gray-300 rounded-xl outline-none shadow-sm"
+            />
+          </div>
+
           {/* Remember me */}
           {/* <div className="flex items-center gap-2 my-4">
             <input type="checkbox" className="accent-indigo-600 w-4 h-4" />
@@ -170,17 +176,17 @@ const Login = () => {
   bg-linear-to-r from-indigo-500 to-pink-500 mt-2
   hover:opacity-90 transition shadow-md disabled:opacity-60 cursor-pointer"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Signing up..." : "Sign up"}
           </button>
 
           {/* SIGN UP */}
           <p className="text-center text-sm text-gray-500 mt-6">
-            Don't have an account?{" "}
+            Already have an account{" "}
             <Link
-              to="/register"
+              to="/login"
               className="text-indigo-600 font-medium hover:underline cursor-pointer"
             >
-              Create one
+              Sign in
             </Link>
           </p>
         </form>
@@ -189,4 +195,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
